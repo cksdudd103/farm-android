@@ -1,12 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import { api } from '../lib/api'
-
-interface User {
-  id: number
-  email: string
-  name: string
-  role: 'admin' | 'farmer'
-}
+import * as apiClient from '../lib/api'
+import type { User } from '../types/api'
 
 interface AuthContextType {
   user: User | null
@@ -23,29 +17,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    api.get('/api/me')
-      .then((res) => setUser(res.data))
+    apiClient
+      .fetchMe()
+      .then((u) => setUser(u || null))
       .catch(() => setUser(null))
       .finally(() => setIsLoading(false))
   }, [])
 
   const login = async (email: string, password: string, rememberMe: boolean) => {
-    const res = await api.post('/api/login', { email, password, remember_me: rememberMe })
-    setUser(res.data.user)
+    const u = await apiClient.login(email, password, rememberMe)
+    setUser(u || null)
   }
 
   const register = async (name: string, email: string, password: string, passwordConfirm: string, adminCode?: string) => {
-    const res = await api.post('/api/register', { name, email, password, password_confirm: passwordConfirm, admin_code: adminCode })
-    if (res.data?.user) {
-      setUser(res.data.user)
-    } else {
-      const me = await api.get('/api/me')
-      setUser(me.data)
-    }
+    const u = await apiClient.register({
+      name,
+      email,
+      password,
+      password_confirm: passwordConfirm,
+      admin_code: adminCode,
+    })
+    setUser(u || null)
   }
 
   const logout = async () => {
-    await api.post('/api/logout')
+    await apiClient.logout()
     setUser(null)
   }
 

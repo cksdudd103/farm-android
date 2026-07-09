@@ -6,10 +6,18 @@ const app = express()
 const PORT = process.env.PORT || 3000
 const BACKEND_URL = process.env.BACKEND_URL || 'https://farm-webapp-rezy.onrender.com'
 
-app.use('/api', createProxyMiddleware({
+console.log('BACKEND_URL:', BACKEND_URL)
+
+const apiProxy = createProxyMiddleware({
   target: BACKEND_URL,
   changeOrigin: true,
-}))
+  logLevel: 'debug',
+  onProxyReq: (proxyReq, req) => {
+    console.log('[PROXY]', req.method, req.url, '->', BACKEND_URL + req.url)
+  },
+})
+
+app.use('/api', apiProxy)
 
 app.use(express.static(path.join(__dirname, 'dist')))
 

@@ -6,7 +6,7 @@ import {
   deleteCrop,
 } from '../lib/api'
 import { PageCard } from '../components/Layout'
-import { cropGuides, getCropGuide } from '../data/cropGuides'
+import { cropGuides, getCropGuide, calculateHarvestDate, getDaysUntil } from '../data/cropGuides'
 import type { Crop } from '../types/api'
 
 const statuses = ['재배중', '수확완료', '휴경']
@@ -40,6 +40,15 @@ export function CropsPage() {
     const formData = new FormData(form)
     const idRaw = formData.get('id') as string
     const id = idRaw ? Number(idRaw) : 0
+
+    const cropName = (formData.get('name') as string) || ''
+    const plantingDate = (formData.get('planting_date') as string) || ''
+    const matchedGuide = getCropGuide(cropName)
+    if (matchedGuide && plantingDate) {
+      const expected = calculateHarvestDate(plantingDate, matchedGuide.harvestDays)
+      formData.set('expected_harvest_date', expected)
+    }
+
     try {
       if (id) {
         await updateCrop(id, formData)
@@ -107,27 +116,7 @@ export function CropsPage() {
       ) : (
         <ul className="divide-y divide-gray-200">
           {crops.map((crop) => (
-            <li key={crop.id} className="py-4 flex justify-between items-start">
-              <div className="flex gap-4">
-                {crop.image && (
-                  <img src={crop.image} alt={crop.name} className="w-16 h-16 object-cover rounded-lg" />
-                )}
-                <div>
-                  <p className="font-semibold text-gray-900">{crop.name}</p>
-                  <p className="text-sm text-gray-500">
-                    {crop.variety || '-'} · {crop.field_location || '-'} · {crop.area ? `${crop.area}㎡` : '-'}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    심은 날: {crop.planting_date || '-'} · 상태: {crop.status}
-                  </p>
-                  {crop.memo && <p className="text-sm text-gray-600 mt-1">{crop.memo}</p>}
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <button onClick={() => openEdit(crop)} className="text-sm text-green-700 hover:underline">수정</button>
-                <button onClick={() => handleDelete(crop.id)} className="text-sm text-red-600 hover:underline">삭제</button>
-              </div>
-            </li>
+            <CropItem key={crop.id} crop={crop} onEdit={openEdit} onDelete={handleDelete} />
           ))}
         </ul>
       )}
@@ -140,6 +129,57 @@ export function CropsPage() {
         />
       )}
     </PageCard>
+  )
+}
+
+function CropItem({
+  crop,
+  onEdit,
+  onDelete,
+}: {
+  crop: Crop
+  onEdit: (crop: Crop) => void
+  onDelete: (id: number) => void
+}) {
+  const g = useMemo(() => getCropGuide(crop.name), [crop.name])
+  const estimate = useMemo(() => {
+    if (crop.expected_harvest_date) {
+      return { date: crop.expected_harvest_date, days: getDaysUntil(crop.expected_harvest_date) }
+    }
+    if (g && crop.planting_date) {
+      const date = calculateHarvestDate(crop.planting_date, g.harvestDays)
+      return { date, days: getDaysUntil(date) }
+    }
+    return null
+  }, [crop.expected_harvest_date, crop.planting_date, g])
+
+  return (
+    <li className="py-4 flex justify-between items-start">
+      <div className="flex gap-4">
+        {crop.image && (
+          <img src={crop.image} alt={crop.name} className="w-16 h-16 object-cover rounded-lg" />
+        )}
+        <div>
+          <p className="font-semibold text-gray-900">{crop.name}</p>
+          <p className="text-sm text-gray-500">
+            {crop.variety || '-'} · {crop.field_location || '-'} · {crop.area ? `${crop.area}㎡` : '-'}
+          </p>
+          <p className="text-sm text-gray-500">
+            심은 날: {crop.planting_date || '-'} · 상태: {crop.status}
+          </p>
+          {estimate && (
+            <p className={`text-sm mt-1 font-medium ${estimate.days <= 7 ? 'text-red-600' : estimate.days <= 14 ? 'text-orange-600' : 'text-green-700'}`}>
+              예상 수확일: {estimate.date} ({estimate.days > 0 ? `D-${estimate.days}` : estimate.days === 0 ? '오늘 수확 예정' : `D+${Math.abs(estimate.days)}`})
+            </p>
+          )}
+          {crop.memo && <p className="text-sm text-gray-600 mt-1">{crop.memo}</p>}
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <button onClick={() => onEdit(crop)} className="text-sm text-green-700 hover:underline">수정</button>
+        <button onClick={() => onDelete(crop.id)} className="text-sm text-red-600 hover:underline">삭제</button>
+      </div>
+    </li>
   )
 }
 
@@ -186,7 +226,7 @@ function CropModal({
           <input name="variety" defaultValue={crop?.variety || ''} placeholder="품종" className="w-full px-3 py-2 border rounded-lg" />
           <input name="field_location" defaultValue={crop?.field_location || ''} placeholder="밭 위치" className="w-full px-3 py-2 border rounded-lg" />
           <input name="area" type="number" step="0.01" defaultValue={crop?.area || ''} placeholder="면적 (㎡)" className="w-full px-3 py-2 border rounded-lg" />
-          <input name="planting_date" type="date" defaultValue={crop?.planting_date || ''} placeholder="심은 날" className="w-full px-3 py-2 border rounded-lg" />
+          <input name="planting_date" type="date" defaultValue={crop?.expected_harvest_date || ''} placeholder="심은 날" className="w-full px-3 py-2 border rounded-lg" />
           <input name="expected_harvest_date" type="date" defaultValue={crop?.expected_harvest_date || ''} placeholder="예상 수확일" className="w-full px-3 py-2 border rounded-lg" />
           <select name="status" defaultValue={crop?.status || '재배중'} className="w-full px-3 py-2 border rounded-lg">
             {statuses.map((s) => <option key={s} value={s}>{s}</option>)}

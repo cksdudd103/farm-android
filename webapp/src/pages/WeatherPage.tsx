@@ -1,20 +1,27 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
+import { fetchCrops } from '../lib/api'
 import { fetchWeather } from '../lib/api'
 import { PageCard } from '../components/Layout'
-import { CloudSun, CloudRain, Cloud, Sun, Wind } from 'lucide-react'
-import type { WeatherResponse } from '../types/api'
+import { CloudSun, CloudRain, Cloud, Sun, Wind, Sprout } from 'lucide-react'
+import { cropGuides, getCropGuide, getWeatherSuitability, getWeatherAdvice } from '../data/cropGuides'
+import type { WeatherResponse, Crop } from '../types/api'
 
 export function WeatherPage() {
   const [weather, setWeather] = useState<WeatherResponse | null>(null)
+  const [crops, setCrops] = useState<Crop[]>([])
   const [region, setRegion] = useState('전국')
+  const [selectedCrop, setSelectedCrop] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   const load = (r: string) => {
     setLoading(true)
     setError('')
-    fetchWeather(r)
-      .then((data) => setWeather(data))
+    Promise.all([fetchWeather(r), fetchCrops().catch(() => [])])
+      .then(([w, c]) => {
+        setWeather(w)
+        setCrops(c || [])
+      })
       .catch((err) => {
         console.warn('Weather API failed, using fallback data:', err)
         setWeather({
@@ -34,6 +41,17 @@ export function WeatherPage() {
     e.preventDefault()
     load(region)
   }
+
+  const todayWeather = useMemo(() => weather?.data?.[0], [weather])
+  const guide = useMemo(() => getCropGuide(selectedCrop), [selectedCrop])
+  const suitability = useMemo(() => {
+    if (!guide || !todayWeather) return null
+    return getWeatherSuitability(guide, todayWeather.temp_max, todayWeather.humidity)
+  }, [guide, todayWeather])
+  const advice = useMemo(() => {
+    if (!guide || !todayWeather) return null
+    return getWeatherAdvice(guide, todayWeather.temp_max, todayWeather.humidity)
+  }, [guide, todayWeather])
 
   if (loading) return <PageCard title="날씨 예보"><div className="py-10 text-center text-gray-500">불러오는 중...</div></PageCard>
 
@@ -71,8 +89,63 @@ export function WeatherPage() {
           ))}
         </div>
       )}
+
+      <div className="mt-8 p-4 bg-green-50 rounded-xl border border-green-100">
+        <div className="flex items-center gap-2 mb-3">
+          <Sprout className="w-5 h-5 text-green-700" />
+          <p className="font-semibold text-green-800">작물별 날씨 최적화 조언</p>
+        </div>
+        <select
+          value={selectedCrop}
+          onChange={(e) => setSelectedCrop(e.target.value)}
+          className="w-full px-3 py-2 border rounded-lg mb-3"
+        >
+          <option value="">{myCropOption(crops)}</option>
+          {crops.length > 0 && <optgroup label="내 작물">
+            {crops.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
+          </optgroup>}
+          <optgroup label="작물 가이드">
+            {cropGuides.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}
+          </optgroup>
+        </select>
+
+        {!selectedCrop && (
+          <p className="text-sm text-gray-600">작물을 선택하면 오늘 날씨에 따른 재배 적합도와 맞춤 조언을 확인할 수 있습니다.</p>
+        )}
+
+        {selectedCrop && guide && (
+          <div className="space-y-2">
+            <p className="text-sm text-gray-600">
+              적정 환경: 온도 {guide.optimalTemp} / 습도 {guide.humidity}
+            </p>
+            {suitability && (
+              <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${suitabilityClass(suitability)}`}>
+                {suitabilityLabel(suitability)}
+              </span>
+            )}
+            {advice && <p className="text-sm text-gray-800">{advice}</p>}
+          </div>
+        )}
+      </div>
     </PageCard>
   )
+}
+
+function myCropOption(crops: Crop[]) {
+  if (crops.length === 0) return '작물 선택'
+  return `내 작물 선택 (${crops.length}개)`
+}
+
+function suitabilityClass(s: 'good' | 'warning' | 'bad') {
+  if (s === 'good') return 'bg-green-100 text-green-800'
+  if (s === 'warning') return 'bg-yellow-100 text-yellow-800'
+  return 'bg-red-100 text-red-800'
+}
+
+function suitabilityLabel(s: 'good' | 'warning' | 'bad') {
+  if (s === 'good') return '최적'
+  if (s === 'warning') return '주의'
+  return '부적합'
 }
 
 function weatherIcon(condition: string) {
@@ -103,4 +176,3 @@ function generateFallbackWeather() {
     }
   })
 }
-

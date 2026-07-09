@@ -28,7 +28,12 @@ export function AdminUsersPage() {
   }, [])
 
   const filteredUsers = useMemo(() => {
-    return users.filter((u) => {
+    const sorted = [...users].sort((a, b) => {
+      if (a.is_active_user === false && b.is_active_user !== false) return 1
+      if (a.is_active_user !== false && b.is_active_user === false) return -1
+      return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime()
+    })
+    return sorted.filter((u) => {
       const matchesSearch =
         !search ||
         u.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -40,6 +45,8 @@ export function AdminUsersPage() {
       return matchesSearch && matchesRole && matchesStatus
     })
   }, [users, search, roleFilter, statusFilter])
+
+  const pendingUsers = useMemo(() => users.filter((u) => u.role === 'farmer' && u.is_active_user !== false), [users])
 
   const stats = useMemo(() => {
     const total = users.length
@@ -110,6 +117,12 @@ export function AdminUsersPage() {
 
   return (
     <PageCard title="회원 관리">
+      {pendingUsers.length > 0 && (
+        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-100 rounded-lg flex items-center gap-2">
+          <span className="text-yellow-700 font-semibold">새 회원 {pendingUsers.length}명 가입 대기 중</span>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <StatCard icon={Users} label="총 회원" value={stats.total} color="bg-blue-50 text-blue-700" />
         <StatCard icon={UserCheck} label="관리자" value={stats.admins} color="bg-purple-50 text-purple-700" />

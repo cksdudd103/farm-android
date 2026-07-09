@@ -16,9 +16,18 @@ export function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [crops, setCrops] = useState<Crop[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingCrops, setLoadingCrops] = useState(false)
   const [error, setError] = useState('')
   const [editing, setEditing] = useState<Task | null>(null)
   const [isOpen, setIsOpen] = useState(false)
+
+  const loadCrops = () => {
+    setLoadingCrops(true)
+    fetchCrops()
+      .then((data) => setCrops(data || []))
+      .catch(() => setCrops([]))
+      .finally(() => setLoadingCrops(false))
+  }
 
   const load = () => {
     setLoading(true)
@@ -35,18 +44,26 @@ export function TasksPage() {
     load()
   }, [])
 
+  useEffect(() => {
+    if (isOpen) loadCrops()
+  }, [isOpen])
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError('')
     const form = e.currentTarget
     const fd = new FormData(form)
+    const cropId = fd.get('crop_id') ? Number(fd.get('crop_id')) : undefined
+    const cropName = crops.find((c) => c.id === cropId)?.name
+
     const payload: Partial<Task> = {
       title: fd.get('title') as string,
       memo: (fd.get('memo') as string) || undefined,
       due_date: (fd.get('due_date') as string) || undefined,
       priority: fd.get('priority') as string,
       status: fd.get('status') as string,
-      crop_id: fd.get('crop_id') ? Number(fd.get('crop_id')) : undefined,
+      crop_id: cropId,
+      crop_name: cropName,
     }
     try {
       if (editing) {
@@ -117,6 +134,7 @@ export function TasksPage() {
         <TaskModal
           task={editing}
           crops={crops}
+          loadingCrops={loadingCrops}
           onClose={() => { setIsOpen(false); setEditing(null) }}
           onSubmit={handleSubmit}
         />
@@ -128,11 +146,13 @@ export function TasksPage() {
 function TaskModal({
   task,
   crops,
+  loadingCrops,
   onClose,
   onSubmit,
 }: {
   task: Task | null
   crops: Crop[]
+  loadingCrops: boolean
   onClose: () => void
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void
 }) {
@@ -142,9 +162,9 @@ function TaskModal({
         <h2 className="text-xl font-bold mb-4">{task ? '작업 수정' : '작업 등록'}</h2>
         <form onSubmit={onSubmit} className="space-y-3">
           <input name="title" defaultValue={task?.title} placeholder="작업명" className="w-full px-3 py-2 border rounded-lg" required />
-          <select name="crop_id" defaultValue={task?.crop_id || ''} className="w-full px-3 py-2 border rounded-lg">
-            <option value="">작물 선택</option>
-            {crops.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          <select name="crop_id" defaultValue={task?.crop_id ?? ''} className="w-full px-3 py-2 border rounded-lg">
+            <option value="">{loadingCrops ? '작물 불러오는 중...' : crops.length === 0 ? '등록된 작물 없음' : '작물 선택'}</option>
+            {crops.map((c) => <option key={c.id} value={String(c.id)}>{c.name} {c.variety ? `(${c.variety})` : ''}</option>)}
           </select>
           <input name="due_date" type="date" defaultValue={task?.due_date || ''} placeholder="마감일" className="w-full px-3 py-2 border rounded-lg" />
           <select name="priority" defaultValue={task?.priority || '보통'} className="w-full px-3 py-2 border rounded-lg">

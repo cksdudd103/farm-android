@@ -138,11 +138,13 @@ export interface WeatherResponse {
 
 export interface PesticideInfo {
   name: string
-  type: string
+  type?: string
+  category?: string
+  ingredient?: string
   target: string
-  crops: string
-  safety_period: string
-  dilution: string
+  crops?: string
+  safety_period?: string
+  dilution?: string
 }
 
 export interface SupportProgram {

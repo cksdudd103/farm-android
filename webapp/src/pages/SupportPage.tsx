@@ -3,15 +3,68 @@ import { fetchSupportPrograms } from '../lib/api'
 import { PageCard } from '../components/Layout'
 import type { SupportProgram } from '../types/api'
 
+const fallbackPrograms: SupportProgram[] = [
+  {
+    title: '청년 농업인 육성 지원',
+    agency: '농촌진흥청',
+    period: '상시',
+    target: '만 18~40세 청년 농업인, 귀농인',
+    content: '영농 정착 지원금, 교육, 멘토링, 창업 자금 지원',
+    status: '진행중',
+  },
+  {
+    title: '귀농귀촌 종합 지원',
+    agency: '농림축산식품부',
+    period: '상시',
+    target: '귀농·귀촌 희망자',
+    content: '상담, 교육, 체험학습, 정착 지원금, 주택 수리비 지원',
+    status: '진행중',
+  },
+  {
+    title: '농기계 임대료 지원',
+    agency: '농촌진흥청/지자체',
+    period: '연중',
+    target: '농업인 및 농업법인',
+    content: '트랙터, 이앙기, 콤바인 등 농기계 임대료 할인',
+    status: '진행중',
+  },
+  {
+    title: '친환경 농업 지원 사업',
+    agency: '농림축산식품부',
+    period: '연중',
+    target: '친환경 인증 농가',
+    content: '유기농, 물농약 농업 전환 지원, 인증비 지원',
+    status: '진행중',
+  },
+  {
+    title: '농업 재해 복구비 지원',
+    agency: '농림축산식품부',
+    period: '재해 발생 시',
+    target: '자연재해 피해 농가',
+    content: '태풍, 홍수, 가뭄, 병해충 피해 복구 비용 지원',
+    status: '예정',
+  },
+  {
+    title: '농업경영체 등록 지원',
+    agency: '농림축산식품부',
+    period: '상시',
+    target: '농업경영체 미등록 농가',
+    content: '농업경영체 등록 시 각종 정부 지원사업 참여 가능',
+    status: '진행중',
+  },
+]
+
 export function SupportPage() {
   const [programs, setPrograms] = useState<SupportProgram[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
 
   useEffect(() => {
     fetchSupportPrograms()
-      .then((data) => setPrograms(data || []))
-      .catch((err) => setError(err?.response?.data?.msg || err.message || '지원사업 정보를 불러오지 못했습니다.'))
+      .then((data) => setPrograms(data && data.length > 0 ? data : fallbackPrograms))
+      .catch((err) => {
+        console.warn('Support API failed, using fallback:', err)
+        setPrograms(fallbackPrograms)
+      })
       .finally(() => setLoading(false))
   }, [])
 
@@ -19,7 +72,7 @@ export function SupportPage() {
 
   return (
     <PageCard title="정부 지원사업">
-      {error && <p className="text-red-600 mb-4">{error}</p>}
+      <p className="text-sm text-gray-500 mb-4">* 백엔드 연결 실패 시 대표 정부 지원사업 안내 데이터를 표시합니다. 자세한 내용은 농림축산식품부/농촌진흥청 홈페이지를 확인하세요.</p>
 
       {programs.length === 0 ? (
         <p className="text-gray-500">지원사업 정보가 없습니다.</p>

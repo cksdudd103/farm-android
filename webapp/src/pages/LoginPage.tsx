@@ -125,6 +125,7 @@ function RegisterModal({ onClose }: { onClose: () => void }) {
     setError('')
     try {
       await register(name, email, password, passwordConfirm, adminCode.trim() || undefined)
+      alert('회원가입이 완료되었습니다. 관리자 승인 후 관리자 페이지에서 확인할 수 있습니다.')
       navigate('/')
     } catch (err: any) {
       const message =

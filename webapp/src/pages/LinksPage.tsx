@@ -6,6 +6,25 @@ import { ExternalLink as LinkIcon, Newspaper, Search } from 'lucide-react'
 
 const categories = ['전체', '정부기관', '공지사항', '정보포털', '기상정보', '시세정보', '지원사업']
 
+const fallbackLinks: ExternalLink[] = [
+  { name: '농촌진흥청', url: 'https://www.rda.go.kr', category: '정부기관', description: '농업 기술, 병해충 정보, 영농 자료' },
+  { name: '농촌진흥청 공지사항', url: 'https://www.rda.go.kr/board/board.do?boardId=farmprmntinfo', category: '공지사항', description: '농촌진흥청 최신 공지 및 소식' },
+  { name: '농사로', url: 'https://www.nongsaro.go.kr', category: '정보포털', description: '농업 기술, 작물 정보, 병해충 진단' },
+  { name: '농림축산식품부', url: 'https://www.mafra.go.kr', category: '정부기관', description: '농식품 정책, 지원 사업, 병해충 발생 동향' },
+  { name: '농림축산식품부 본부공지', url: 'https://www.mafra.go.kr/home/5004/subview.do', category: '공지사항', description: '농식품부 공지사항' },
+  { name: '기상청 날씨누리', url: 'https://www.weather.go.kr', category: '기상정보', description: '기상청 공식 날씨 예보 및 특보' },
+  { name: '농업관측', url: 'https://www.agweather.go.kr', category: '기상정보', description: '농업 기상 관측 및 예보' },
+  { name: '농산물유통정보(KAMIS)', url: 'https://www.kamis.or.kr', category: '시세정보', description: '농산물 도매가격 및 소매가격 정보' },
+  { name: '농촌일자리진흥청', url: 'https://www.rda.go.kr/youngfarmer', category: '지원사업', description: '청년 농업인 및 귀농 지원' },
+  { name: '귀농귀촌종합센터', url: 'https://www.returnfarm.com', category: '지원사업', description: '귀농·귀촌 상담 및 교육' },
+]
+
+const fallbackAnnouncements: Announcement[] = [
+  { title: '농촌진흥청 홈페이지 바로가기', url: 'https://www.rda.go.kr', source: '농촌진흥청', summary: '공지사항은 외부 사이트에서 직접 확인해주세요.' },
+  { title: '농사로 병해충 정보', url: 'https://www.nongsaro.go.kr/portal/ps/psb/psbb/farmNocticeList.ps', source: '농사로', summary: '병해충 예보 및 방제 정보' },
+  { title: '농림축산식품부 정책뉴스', url: 'https://www.mafra.go.kr/home/5013/subview.do', source: '농식품부', summary: '정책 소식 및 병해충 발생 현황' },
+]
+
 export function LinksPage() {
   const [links, setLinks] = useState<ExternalLink[]>([])
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
@@ -16,10 +35,13 @@ export function LinksPage() {
 
   useEffect(() => {
     setLoading(true)
-    Promise.all([fetchExternalLinks(), fetchAnnouncements()])
+    Promise.all([
+      fetchExternalLinks().catch(() => fallbackLinks),
+      fetchAnnouncements().catch(() => fallbackAnnouncements),
+    ])
       .then(([l, a]) => {
-        setLinks(l || [])
-        setAnnouncements(a || [])
+        setLinks(l?.length > 0 ? l : fallbackLinks)
+        setAnnouncements(a?.length > 0 ? a : fallbackAnnouncements)
       })
       .catch((err) => setError(err?.response?.data?.msg || err.message || '데이터를 불러오지 못했습니다.'))
       .finally(() => setLoading(false))

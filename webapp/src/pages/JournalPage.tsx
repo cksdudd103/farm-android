@@ -15,9 +15,18 @@ export function JournalPage() {
   const [journals, setJournals] = useState<Journal[]>([])
   const [crops, setCrops] = useState<Crop[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingCrops, setLoadingCrops] = useState(false)
   const [error, setError] = useState('')
   const [editing, setEditing] = useState<Journal | null>(null)
   const [isOpen, setIsOpen] = useState(false)
+
+  const loadCrops = () => {
+    setLoadingCrops(true)
+    fetchCrops()
+      .then((data) => setCrops(data || []))
+      .catch(() => setCrops([]))
+      .finally(() => setLoadingCrops(false))
+  }
 
   const load = () => {
     setLoading(true)
@@ -33,6 +42,10 @@ export function JournalPage() {
   useEffect(() => {
     load()
   }, [])
+
+  useEffect(() => {
+    if (isOpen) loadCrops()
+  }, [isOpen])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -119,6 +132,7 @@ export function JournalPage() {
         <JournalModal
           journal={editing}
           crops={crops}
+          loadingCrops={loadingCrops}
           onClose={() => { setIsOpen(false); setEditing(null) }}
           onSubmit={handleSubmit}
         />
@@ -130,11 +144,13 @@ export function JournalPage() {
 function JournalModal({
   journal,
   crops,
+  loadingCrops,
   onClose,
   onSubmit,
 }: {
   journal: Journal | null
   crops: Crop[]
+  loadingCrops: boolean
   onClose: () => void
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void
 }) {
@@ -144,9 +160,9 @@ function JournalModal({
         <h2 className="text-xl font-bold mb-4">{journal ? '일지 수정' : '일지 작성'}</h2>
         <form onSubmit={onSubmit} className="space-y-3">
           <input name="date" type="date" defaultValue={journal?.date || new Date().toISOString().slice(0, 10)} className="w-full px-3 py-2 border rounded-lg" required />
-          <select name="crop_id" defaultValue={journal?.crop_id || ''} className="w-full px-3 py-2 border rounded-lg">
-            <option value="">작물 선택</option>
-            {crops.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          <select name="crop_id" defaultValue={journal?.crop_id ?? ''} className="w-full px-3 py-2 border rounded-lg">
+            <option value="">{loadingCrops ? '작물 불러오는 중...' : crops.length === 0 ? '등록된 작물 없음' : '작물 선택'}</option>
+            {crops.map((c) => <option key={c.id} value={String(c.id)}>{c.name} {c.variety ? `(${c.variety})` : ''}</option>)}
           </select>
           <select name="work_type" defaultValue={journal?.work_type || ''} className="w-full px-3 py-2 border rounded-lg">
             <option value="">작업 종류</option>

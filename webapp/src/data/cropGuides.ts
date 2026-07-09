@@ -24,9 +24,12 @@ export interface CropGuide {
 export interface PesticideGuide {
   name: string
   type: string
+  category?: string
+  ingredient?: string
   target: string
   dilution: string
   safetyPeriod: string
+  crops?: string
 }
 
 export const cropGuides: CropGuide[] = [

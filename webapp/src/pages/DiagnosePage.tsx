@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { fetchDiagnoses, createDiagnosis, deleteDiagnosis } from '../lib/api'
 import { PageCard } from '../components/Layout'
+import { cropGuides, getCropGuide } from '../data/cropGuides'
 import type { Diagnosis } from '../types/api'
 
 export function DiagnosePage() {
@@ -8,18 +9,27 @@ export function DiagnosePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [isOpen, setIsOpen] = useState(false)
+  const [cropFilter, setCropFilter] = useState('')
 
   const load = () => {
     setLoading(true)
     fetchDiagnoses()
       .then((data) => setDiagnoses(data || []))
-      .catch((err) => setError(err?.response?.data?.msg || err.message || '진단 기록을 불러오지 못했습니다.'))
+      .catch((err) => {
+        console.warn('Diagnoses API failed:', err)
+        setDiagnoses([])
+      })
       .finally(() => setLoading(false))
   }
 
   useEffect(() => {
     load()
   }, [])
+
+  const filteredDiagnoses = useMemo(() => {
+    if (!cropFilter) return diagnoses
+    return diagnoses.filter((d) => d.crop_name?.includes(cropFilter))
+  }, [diagnoses, cropFilter])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -49,7 +59,15 @@ export function DiagnosePage() {
 
   return (
     <PageCard title="AI 병해충 진단">
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-between items-center mb-4">
+        <select
+          value={cropFilter}
+          onChange={(e) => setCropFilter(e.target.value)}
+          className="px-3 py-2 border rounded-lg"
+        >
+          <option value="">전체 작물</option>
+          {cropGuides.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}
+        </select>
         <button
           onClick={() => setIsOpen(true)}
           className="px-4 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800"
@@ -60,11 +78,13 @@ export function DiagnosePage() {
 
       {error && <p className="text-red-600 mb-4">{error}</p>}
 
-      {diagnoses.length === 0 ? (
+      <DiseaseGuide cropName={cropFilter} />
+
+      {filteredDiagnoses.length === 0 ? (
         <p className="text-gray-500">진단 기록이 없습니다.</p>
       ) : (
         <ul className="divide-y divide-gray-200">
-          {diagnoses.map((d) => (
+          {filteredDiagnoses.map((d) => (
             <li key={d.id} className="py-4 flex justify-between items-start">
               <div className="flex gap-4">
                 {d.image && <img src={d.image} alt="" className="w-20 h-20 object-cover rounded-lg" />}
@@ -88,7 +108,10 @@ export function DiagnosePage() {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
             <h2 className="text-xl font-bold mb-4">병해충 진단</h2>
             <form onSubmit={handleSubmit} className="space-y-3">
-              <input name="crop_name" placeholder="작물명" className="w-full px-3 py-2 border rounded-lg" required />
+              <select name="crop_name" className="w-full px-3 py-2 border rounded-lg" required>
+                <option value="">작물 선택</option>
+                {cropGuides.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}
+              </select>
               <input name="image" type="file" accept="image/*" className="w-full" required />
               <div className="flex gap-2 pt-2">
                 <button type="button" onClick={() => setIsOpen(false)} className="flex-1 py-2 border rounded-lg">취소</button>
@@ -99,5 +122,30 @@ export function DiagnosePage() {
         </div>
       )}
     </PageCard>
+  )
+}
+
+function DiseaseGuide({ cropName }: { cropName: string }) {
+  const guide = useMemo(() => getCropGuide(cropName), [cropName])
+  if (!guide) return null
+
+  return (
+    <div className="mb-6 p-4 bg-yellow-50 rounded-xl border border-yellow-100">
+      <h3 className="font-bold text-yellow-800 mb-2">{guide.name} 주요 병해충</h3>
+      <div className="grid md:grid-cols-2 gap-4 text-sm">
+        <div>
+          <p className="font-semibold text-gray-700">주요 해충</p>
+          <ul className="list-disc list-inside text-gray-600">
+            {guide.commonPests.map((p, i) => <li key={i}>{p}</li>)}
+          </ul>
+        </div>
+        <div>
+          <p className="font-semibold text-gray-700">주요 병해</p>
+          <ul className="list-disc list-inside text-gray-600">
+            {guide.commonDiseases.map((d, i) => <li key={i}>{d}</li>)}
+          </ul>
+        </div>
+      </div>
+    </div>
   )
 }

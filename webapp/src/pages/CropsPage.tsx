@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   fetchCrops,
   createCrop,
@@ -6,6 +6,7 @@ import {
   deleteCrop,
 } from '../lib/api'
 import { PageCard } from '../components/Layout'
+import { cropGuides, getCropGuide } from '../data/cropGuides'
 import type { Crop } from '../types/api'
 
 const statuses = ['재배중', '수확완료', '휴경']
@@ -16,6 +17,7 @@ export function CropsPage() {
   const [error, setError] = useState('')
   const [editing, setEditing] = useState<Crop | null>(null)
   const [isOpen, setIsOpen] = useState(false)
+  const [selectedGuide, setSelectedGuide] = useState('')
 
   const load = () => {
     setLoading(true)
@@ -28,6 +30,8 @@ export function CropsPage() {
   useEffect(() => {
     load()
   }, [])
+
+  const guide = useMemo(() => getCropGuide(selectedGuide), [selectedGuide])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -74,6 +78,19 @@ export function CropsPage() {
 
   return (
     <PageCard title="작물 관리">
+      <div className="mb-6 p-4 bg-green-50 rounded-xl border border-green-100">
+        <label className="block text-sm font-semibold text-green-800 mb-2">AI 작물 가이드 검색</label>
+        <select
+          value={selectedGuide}
+          onChange={(e) => setSelectedGuide(e.target.value)}
+          className="w-full px-3 py-2 border rounded-lg"
+        >
+          <option value="">작물 선택</option>
+          {cropGuides.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}
+        </select>
+        {guide && <CropGuideCard guide={guide} />}
+      </div>
+
       <div className="flex justify-end mb-4">
         <button
           onClick={openNew}
@@ -126,6 +143,27 @@ export function CropsPage() {
   )
 }
 
+function CropGuideCard({ guide }: { guide: import('../data/cropGuides').CropGuide }) {
+  return (
+    <div className="mt-4 text-sm text-gray-700">
+      <div className="grid md:grid-cols-2 gap-2">
+        <p>🌡️ 적정 온도: {guide.temperature}</p>
+        <p>💧 적정 습도: {guide.humidity}</p>
+        <p>🌱 파종 시기: {guide.sowingSeason}</p>
+        <p>🧺 수확 시기: {guide.harvestSeason}</p>
+        <p>🪴 토양: {guide.soil}</p>
+        <p>💦 물주기: {guide.watering}</p>
+        <p>🧪 비료: {guide.fertilizing}</p>
+      </div>
+      <p className="mt-2">🐛 주요 해충: {guide.commonPests.join(', ')}</p>
+      <p>🦠 주요 병해: {guide.commonDiseases.join(', ')}</p>
+      <ul className="mt-2 list-disc list-inside">
+        {guide.tips.map((tip, i) => <li key={i}>{tip}</li>)}
+      </ul>
+    </div>
+  )
+}
+
 function CropModal({
   crop,
   onClose,
@@ -141,7 +179,10 @@ function CropModal({
         <h2 className="text-xl font-bold mb-4">{crop ? '작물 수정' : '작물 등록'}</h2>
         <form onSubmit={onSubmit} className="space-y-3">
           <input type="hidden" name="id" value={crop?.id || ''} />
-          <input name="name" defaultValue={crop?.name} placeholder="작물명" className="w-full px-3 py-2 border rounded-lg" required />
+          <select name="name" defaultValue={crop?.name} className="w-full px-3 py-2 border rounded-lg" required>
+            <option value="">작물 선택</option>
+            {cropGuides.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}
+          </select>
           <input name="variety" defaultValue={crop?.variety || ''} placeholder="품종" className="w-full px-3 py-2 border rounded-lg" />
           <input name="field_location" defaultValue={crop?.field_location || ''} placeholder="밭 위치" className="w-full px-3 py-2 border rounded-lg" />
           <input name="area" type="number" step="0.01" defaultValue={crop?.area || ''} placeholder="면적 (㎡)" className="w-full px-3 py-2 border rounded-lg" />

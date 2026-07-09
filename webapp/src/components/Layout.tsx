@@ -1,6 +1,21 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { Sprout, LayoutDashboard, Calendar, ClipboardList, Leaf, Search, CloudSun, ShoppingCart, FlaskConical, FileText, Menu, LogOut, Settings } from 'lucide-react'
+import {
+  Sprout,
+  LayoutDashboard,
+  Calendar,
+  ClipboardList,
+  Leaf,
+  Search,
+  CloudSun,
+  ShoppingCart,
+  FlaskConical,
+  FileText,
+  Menu,
+  LogOut,
+  Settings,
+  Users,
+} from 'lucide-react'
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 
@@ -17,11 +32,17 @@ const navItems = [
   { to: '/support', icon: FileText, label: '지원사업' },
 ]
 
+const adminNavItems = [
+  { to: '/admin/users', icon: Users, label: '회원 관리' },
+]
+
 export function Layout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
+
+  const isAdmin = user?.role === 'admin'
 
   const handleLogout = async () => {
     await logout()
@@ -30,12 +51,12 @@ export function Layout() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Header */}
       <header className="bg-green-700 text-white shadow-md">
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sprout className="w-6 h-6" />
             <span className="font-bold text-lg">스마트영농</span>
+            {isAdmin && <span className="ml-2 text-xs bg-purple-600 px-2 py-0.5 rounded">관리자</span>}
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm hidden sm:inline">{user?.name}님</span>
@@ -64,36 +85,24 @@ export function Layout() {
       </header>
 
       <div className="flex flex-1 max-w-7xl mx-auto w-full">
-        {/* Sidebar */}
         <aside
           className={`${
             menuOpen ? 'translate-x-0' : '-translate-x-full'
           } fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-lg transform transition-transform duration-200 md:translate-x-0 md:static md:shadow-none md:border-r md:border-gray-200`}
         >
           <nav className="p-4 space-y-1">
-            {navItems.map((item) => {
-              const Icon = item.icon
-              const active = location.pathname === item.to
-              return (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  onClick={() => setMenuOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition ${
-                    active
-                      ? 'bg-green-100 text-green-800 font-semibold'
-                      : 'text-gray-700 hover:bg-green-50'
-                  }`}
-                >
-                  <Icon className="w-5 h-5" />
-                  {item.label}
-                </Link>
-              )
-            })}
+            {navItems.map((item) => renderNavItem(item, location.pathname, () => setMenuOpen(false)))}
+            {isAdmin && (
+              <>
+                <div className="pt-4 mt-4 border-t border-gray-200">
+                  <p className="px-4 text-xs font-semibold text-gray-400 mb-2">관리자 메뉴</p>
+                </div>
+                {adminNavItems.map((item) => renderNavItem(item, location.pathname, () => setMenuOpen(false)))}
+              </>
+            )}
           </nav>
         </aside>
 
-        {/* Backdrop for mobile */}
         {menuOpen && (
           <div
             className="fixed inset-0 bg-black/30 z-30 md:hidden"
@@ -101,12 +110,35 @@ export function Layout() {
           />
         )}
 
-        {/* Main content */}
         <main className="flex-1 p-4 sm:p-6 overflow-auto">
           <OutletWrapper />
         </main>
       </div>
     </div>
+  )
+}
+
+function renderNavItem(
+  item: { to: string; icon: React.ElementType; label: string },
+  pathname: string,
+  onClick: () => void
+) {
+  const Icon = item.icon
+  const active = pathname === item.to || pathname.startsWith(item.to + '/')
+  return (
+    <Link
+      key={item.to}
+      to={item.to}
+      onClick={onClick}
+      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition ${
+        active
+          ? 'bg-green-100 text-green-800 font-semibold'
+          : 'text-gray-700 hover:bg-green-50'
+      }`}
+    >
+      <Icon className="w-5 h-5" />
+      {item.label}
+    </Link>
   )
 }
 

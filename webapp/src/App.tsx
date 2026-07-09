@@ -15,6 +15,8 @@ import { PesticidePage } from './pages/PesticidePage'
 import { SupportPage } from './pages/SupportPage'
 import { SettingsPage } from './pages/SettingsPage'
 
+import { AdminUsersPage } from './pages/AdminUsersPage'
+
 function App() {
   return (
     <AuthProvider>
@@ -32,6 +34,7 @@ function App() {
           <Route path="pesticide" element={<PesticidePage />} />
           <Route path="support" element={<SupportPage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="admin/users" element={<AdminUsersPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

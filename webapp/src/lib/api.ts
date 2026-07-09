@@ -72,6 +72,9 @@ export const fetchDashboardSummary = () => api.get<DashboardResponse>('/api/dash
 
 // Users (admin)
 export const fetchUsers = () => api.get<ApiResponse<User[]>>('/api/users').then(unwrap)
+export const updateUser = (id: number, payload: Partial<User>) =>
+  api.put<ApiResponse<User>>(`/api/users/${id}`, payload).then(unwrap)
+export const deleteUser = (id: number) => api.delete<ApiResponse<unknown>>(`/api/users/${id}`).then(unwrap)
 
 // Crops
 export const fetchCrops = () => api.get<ApiResponse<Crop[]>>('/api/crops').then(unwrap)

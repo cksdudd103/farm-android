@@ -15,9 +15,9 @@ import type {
   WeatherResponse,
 } from '../types/api'
 
-const baseURL =
-  import.meta.env.VITE_API_BASE_URL ||
-  (import.meta.env.PROD ? 'https://farm-webapp-rezy.onrender.com' : '')
+const BACKEND_URL = 'https://farm-webapp-rezy.onrender.com'
+
+const baseURL = import.meta.env.VITE_API_BASE_URL || BACKEND_URL
 
 export const api = axios.create({
   baseURL,

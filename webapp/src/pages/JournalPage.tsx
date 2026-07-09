@@ -37,7 +37,8 @@ export function JournalPage() {
     setError('')
     const form = e.currentTarget
     const formData = new FormData(form)
-    const id = Number(formData.get('id'))
+    const idRaw = formData.get('id') as string
+    const id = idRaw ? Number(idRaw) : 0
     try {
       if (id) {
         await updateJournal(id, formData)

@@ -14,4 +14,13 @@ export default defineConfig({
       },
     },
   },
+  preview: {
+    port: Number(process.env.PORT) || 4173,
+    proxy: {
+      '/api': {
+        target: 'https://farm-webapp-rezy.onrender.com',
+        changeOrigin: true,
+      },
+    },
+  },
 })

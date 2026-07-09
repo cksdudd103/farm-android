@@ -5,9 +5,9 @@ services:
     plan: free
     branch: new-main
     buildCommand: cd webapp && npm install && npm run build
-    startCommand: cd webapp && npx vite preview --host 0.0.0.0 --port $PORT
+    startCommand: cd webapp && node server.cjs
     envVars:
-      - key: VITE_API_BASE_URL
+      - key: BACKEND_URL
         value: https://farm-webapp-rezy.onrender.com
       - key: NODE_VERSION
         value: "20"

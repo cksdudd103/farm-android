@@ -122,9 +122,17 @@ export interface WeatherDay {
   rain_prob: number
 }
 
+export interface CurrentWeather {
+  temp: number
+  condition: string
+  wind_speed: number
+  humidity: number
+}
+
 export interface WeatherResponse {
   ok: boolean
   region?: string
+  current?: CurrentWeather
   data: WeatherDay[]
 }
 

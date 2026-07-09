@@ -123,3 +123,24 @@ export const fetchMarketPrices = () => api.get<MarketResponse>('/api/market').th
 export const fetchWeather = (region = '전국') => api.get<WeatherResponse>('/api/weather', { params: { region } }).then((res) => res.data)
 export const fetchPesticides = (q = '') => api.get<ApiResponse<PesticideInfo[]>>('/api/pesticides', { params: { q } }).then(unwrap)
 export const fetchSupportPrograms = () => api.get<ApiResponse<SupportProgram[]>>('/api/support-programs').then(unwrap)
+
+// External agriculture sites RSS/announcements proxy
+export const fetchExternalLinks = () =>
+  api.get<ApiResponse<ExternalLink[]>>('/api/external-links').then((res) => res.data.data ?? [])
+export const fetchAnnouncements = (source?: string) =>
+  api.get<ApiResponse<Announcement[]>>('/api/announcements', { params: source ? { source } : {} }).then((res) => res.data.data ?? [])
+
+export interface ExternalLink {
+  name: string
+  url: string
+  category: string
+  description: string
+}
+
+export interface Announcement {
+  title: string
+  url: string
+  source: string
+  date?: string
+  summary?: string
+}

@@ -15,6 +15,7 @@ import {
   LogOut,
   Settings,
   Users,
+  Globe,
 } from 'lucide-react'
 import { useState } from 'react'
 import type { ReactNode } from 'react'
@@ -30,6 +31,7 @@ const navItems = [
   { to: '/weather', icon: CloudSun, label: '날씨' },
   { to: '/pesticide', icon: FlaskConical, label: '농약 정보' },
   { to: '/support', icon: FileText, label: '지원사업' },
+  { to: '/links', icon: Globe, label: '농업 사이트/공지' },
 ]
 
 const adminNavItems = [

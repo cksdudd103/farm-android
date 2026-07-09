@@ -14,6 +14,7 @@ import { WeatherPage } from './pages/WeatherPage'
 import { PesticidePage } from './pages/PesticidePage'
 import { SupportPage } from './pages/SupportPage'
 import { SettingsPage } from './pages/SettingsPage'
+import { LinksPage } from './pages/LinksPage'
 
 import { AdminUsersPage } from './pages/AdminUsersPage'
 
@@ -33,6 +34,7 @@ function App() {
           <Route path="weather" element={<WeatherPage />} />
           <Route path="pesticide" element={<PesticidePage />} />
           <Route path="support" element={<SupportPage />} />
+          <Route path="links" element={<LinksPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="admin/users" element={<AdminUsersPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />

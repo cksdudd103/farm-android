@@ -39,11 +39,14 @@ app.use('/api', async (req, res) => {
       headers,
       body: body.length > 0 ? body : undefined,
       redirect: 'manual',
+      credentials: 'include',
     })
 
     res.status(response.status)
     response.headers.forEach((value, key) => {
-      if (key !== 'content-encoding' && key !== 'transfer-encoding') {
+      if (key === 'set-cookie') {
+        res.setHeader('set-cookie', response.headers.raw()['set-cookie'])
+      } else if (key !== 'content-encoding' && key !== 'transfer-encoding') {
         res.setHeader(key, value)
       }
     })

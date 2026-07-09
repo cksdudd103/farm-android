@@ -37,23 +37,31 @@ export function CropsPage() {
     e.preventDefault()
     setError('')
     const form = e.currentTarget
-    const formData = new FormData(form)
-    const idRaw = formData.get('id') as string
-    const id = idRaw ? Number(idRaw) : 0
+    const fd = new FormData(form)
 
-    const cropName = (formData.get('name') as string) || ''
-    const plantingDate = (formData.get('planting_date') as string) || ''
+    const cropName = (fd.get('name') as string) || ''
+    const plantingDate = (fd.get('planting_date') as string) || ''
     const matchedGuide = getCropGuide(cropName)
+
+    const payload: Partial<Crop> = {
+      name: cropName,
+      variety: (fd.get('variety') as string) || undefined,
+      field_location: (fd.get('field_location') as string) || undefined,
+      area: fd.get('area') ? Number(fd.get('area')) : undefined,
+      planting_date: plantingDate || undefined,
+      status: (fd.get('status') as string) || '재배중',
+      memo: (fd.get('memo') as string) || undefined,
+    }
+
     if (matchedGuide && plantingDate) {
-      const expected = calculateHarvestDate(plantingDate, matchedGuide.harvestDays)
-      formData.set('expected_harvest_date', expected)
+      payload.expected_harvest_date = calculateHarvestDate(plantingDate, matchedGuide.harvestDays)
     }
 
     try {
-      if (id) {
-        await updateCrop(id, formData)
+      if (editing) {
+        await updateCrop(editing.id, payload)
       } else {
-        await createCrop(formData)
+        await createCrop(payload)
       }
       setIsOpen(false)
       setEditing(null)
@@ -218,7 +226,6 @@ function CropModal({
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-bold mb-4">{crop ? '작물 수정' : '작물 등록'}</h2>
         <form onSubmit={onSubmit} className="space-y-3">
-          <input type="hidden" name="id" value={crop?.id || ''} />
           <select name="name" defaultValue={crop?.name} className="w-full px-3 py-2 border rounded-lg" required>
             <option value="">작물 선택</option>
             {cropGuides.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}
@@ -226,13 +233,11 @@ function CropModal({
           <input name="variety" defaultValue={crop?.variety || ''} placeholder="품종" className="w-full px-3 py-2 border rounded-lg" />
           <input name="field_location" defaultValue={crop?.field_location || ''} placeholder="밭 위치" className="w-full px-3 py-2 border rounded-lg" />
           <input name="area" type="number" step="0.01" defaultValue={crop?.area || ''} placeholder="면적 (㎡)" className="w-full px-3 py-2 border rounded-lg" />
-          <input name="planting_date" type="date" defaultValue={crop?.expected_harvest_date || ''} placeholder="심은 날" className="w-full px-3 py-2 border rounded-lg" />
-          <input name="expected_harvest_date" type="date" defaultValue={crop?.expected_harvest_date || ''} placeholder="예상 수확일" className="w-full px-3 py-2 border rounded-lg" />
+          <input name="planting_date" type="date" defaultValue={crop?.planting_date || ''} placeholder="심은 날" className="w-full px-3 py-2 border rounded-lg" />
           <select name="status" defaultValue={crop?.status || '재배중'} className="w-full px-3 py-2 border rounded-lg">
             {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
           <textarea name="memo" defaultValue={crop?.memo || ''} placeholder="메모" className="w-full px-3 py-2 border rounded-lg" rows={3} />
-          <input name="image" type="file" accept="image/*" className="w-full" />
 
           <div className="flex gap-2 pt-2">
             <button type="button" onClick={onClose} className="flex-1 py-2 border rounded-lg">취소</button>

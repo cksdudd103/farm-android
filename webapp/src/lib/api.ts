@@ -78,34 +78,18 @@ export const deleteUser = (id: number) => api.delete<ApiResponse<unknown>>(`/api
 
 // Crops
 export const fetchCrops = () => api.get<ApiResponse<Crop[]>>('/api/crops').then(unwrap)
-export const createCrop = (payload: FormData) =>
-  api
-    .post<ApiResponse<Crop>>('/api/crops', payload, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
-    .then(unwrap)
-export const updateCrop = (id: number, payload: FormData) =>
-  api
-    .post<ApiResponse<Crop>>(`/api/crops/${id}`, payload, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
-    .then(unwrap)
+export const createCrop = (payload: Partial<Crop>) =>
+  api.post<ApiResponse<Crop>>('/api/crops', payload).then(unwrap)
+export const updateCrop = (id: number, payload: Partial<Crop>) =>
+  api.put<ApiResponse<Crop>>(`/api/crops/${id}`, payload).then(unwrap)
 export const deleteCrop = (id: number) => api.delete<ApiResponse<unknown>>(`/api/crops/${id}`).then(unwrap)
 
 // Journals
 export const fetchJournals = () => api.get<ApiResponse<Journal[]>>('/api/journals').then(unwrap)
-export const createJournal = (payload: FormData) =>
-  api
-    .post<ApiResponse<Journal>>('/api/journals', payload, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
-    .then(unwrap)
-export const updateJournal = (id: number, payload: FormData) =>
-  api
-    .post<ApiResponse<Journal>>(`/api/journals/${id}`, payload, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
-    .then(unwrap)
+export const createJournal = (payload: Partial<Journal>) =>
+  api.post<ApiResponse<Journal>>('/api/journals', payload).then(unwrap)
+export const updateJournal = (id: number, payload: Partial<Journal>) =>
+  api.put<ApiResponse<Journal>>(`/api/journals/${id}`, payload).then(unwrap)
 export const deleteJournal = (id: number) => api.delete<ApiResponse<unknown>>(`/api/journals/${id}`).then(unwrap)
 
 // Tasks

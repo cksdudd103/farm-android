@@ -9,6 +9,8 @@ import {
 import { PageCard } from '../components/Layout'
 import type { Journal, Crop } from '../types/api'
 
+const workTypes = ['파종', '정식', '비료', '관수', '방제', '수확', '기타']
+
 export function JournalPage() {
   const [journals, setJournals] = useState<Journal[]>([])
   const [crops, setCrops] = useState<Crop[]>([])
@@ -36,14 +38,24 @@ export function JournalPage() {
     e.preventDefault()
     setError('')
     const form = e.currentTarget
-    const formData = new FormData(form)
-    const idRaw = formData.get('id') as string
-    const id = idRaw ? Number(idRaw) : 0
+    const fd = new FormData(form)
+    const cropId = fd.get('crop_id') ? Number(fd.get('crop_id')) : undefined
+    const cropName = crops.find((c) => c.id === cropId)?.name
+
+    const payload: Partial<Journal> = {
+      date: (fd.get('date') as string) || new Date().toISOString().slice(0, 10),
+      crop_id: cropId,
+      crop_name: cropName,
+      work_type: (fd.get('work_type') as string) || undefined,
+      weather: (fd.get('weather') as string) || undefined,
+      content: (fd.get('content') as string) || '',
+    }
+
     try {
-      if (id) {
-        await updateJournal(id, formData)
+      if (editing) {
+        await updateJournal(editing.id, payload)
       } else {
-        await createJournal(formData)
+        await createJournal(payload)
       }
       setIsOpen(false)
       setEditing(null)
@@ -131,16 +143,17 @@ function JournalModal({
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-bold mb-4">{journal ? '일지 수정' : '일지 작성'}</h2>
         <form onSubmit={onSubmit} className="space-y-3">
-          <input type="hidden" name="id" value={journal?.id || ''} />
-          <input name="date" type="date" defaultValue={journal?.date} className="w-full px-3 py-2 border rounded-lg" required />
+          <input name="date" type="date" defaultValue={journal?.date || new Date().toISOString().slice(0, 10)} className="w-full px-3 py-2 border rounded-lg" required />
           <select name="crop_id" defaultValue={journal?.crop_id || ''} className="w-full px-3 py-2 border rounded-lg">
             <option value="">작물 선택</option>
             {crops.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
-          <input name="work_type" defaultValue={journal?.work_type || ''} placeholder="작업 종류 (예: 파종, 비료)" className="w-full px-3 py-2 border rounded-lg" />
+          <select name="work_type" defaultValue={journal?.work_type || ''} className="w-full px-3 py-2 border rounded-lg">
+            <option value="">작업 종류</option>
+            {workTypes.map((w) => <option key={w} value={w}>{w}</option>)}
+          </select>
           <input name="weather" defaultValue={journal?.weather || ''} placeholder="날씨" className="w-full px-3 py-2 border rounded-lg" />
           <textarea name="content" defaultValue={journal?.content || ''} placeholder="내용" className="w-full px-3 py-2 border rounded-lg" rows={4} required />
-          <input name="image" type="file" accept="image/*" className="w-full" />
 
           <div className="flex gap-2 pt-2">
             <button type="button" onClick={onClose} className="flex-1 py-2 border rounded-lg">취소</button>

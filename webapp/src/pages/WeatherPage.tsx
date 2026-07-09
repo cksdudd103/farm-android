@@ -13,19 +13,22 @@ export function WeatherPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  const load = (r: string) => {
+  const load = async (r: string) => {
     setLoading(true)
     setError('')
-    Promise.all([fetchWeather(r), fetchCrops().catch(() => [])])
-      .then(([w, c]) => {
-        setWeather(w)
-        setCrops(c || [])
-      })
-      .catch((err) => {
-        console.warn('Weather API failed:', err)
-        setError('날씨 정보를 불러오지 못했습니다.')
-      })
-      .finally(() => setLoading(false))
+    try {
+      const [w, c] = await Promise.all([fetchWeather(r), fetchCrops().catch(() => [])])
+      if (!w || !w.data) {
+        throw new Error('날씨 데이터가 없습니다.')
+      }
+      setWeather(w)
+      setCrops(c || [])
+    } catch (err: any) {
+      console.warn('Weather API failed:', err)
+      setError(err?.response?.data?.msg || err?.message || '날씨 정보를 불러오지 못했습니다.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => {

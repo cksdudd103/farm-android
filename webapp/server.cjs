@@ -157,11 +157,14 @@ app.use('/api', async (req, res) => {
     response.headers.forEach((value, key) => {
       if (key === 'set-cookie') {
         res.setHeader('set-cookie', response.headers.raw()['set-cookie'])
-      } else if (key !== 'content-encoding' && key !== 'transfer-encoding') {
+      } else if (key !== 'content-encoding' && key !== 'transfer-encoding' && key !== 'content-length') {
         res.setHeader(key, value)
       }
     })
-    response.body.pipe(res)
+
+    const buf = await response.buffer()
+    res.setHeader('content-length', String(buf.length))
+    res.end(buf)
   } catch (err) {
     console.error('[PROXY ERROR]', err.message)
     res.status(502).json({ ok: false, error: 'Proxy error: ' + err.message })

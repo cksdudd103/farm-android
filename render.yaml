@@ -8,7 +8,7 @@ services:
     startCommand: cd webapp && node server.cjs
     envVars:
       - key: BACKEND_URL
-        value: https://farm-webapp-rezy.onrender.com
+        value: https://farm-webapp-rezy.onrender.com/api
       - key: NODE_VERSION
         value: "20"
     rootDir: .

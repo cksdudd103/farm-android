@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Green leaf glyph representing agriculture -->
+    <!-- Stem -->
+    <path
+        android:fillColor="#1B5E20"
+        android:pathData="M53,88 C53,72 55,58 62,46 L66,48 C59,60 57,73 57,88 Z" />
+    <!-- Main leaf body -->
+    <path
+        android:fillColor="#81C784"
+        android:pathData="M62,22 C40,26 26,44 28,64 C29,74 36,82 46,84 C68,80 82,62 80,42 C79,32 72,24 62,22 Z" />
+    <!-- Leaf highlight -->
+    <path
+        android:fillColor="#A5D6A7"
+        android:pathData="M62,22 C50,24 40,32 34,44 C42,40 52,38 61,40 C69,42 75,48 78,56 C80,50 80,44 79,38 C76,29 70,24 62,22 Z" />
+    <!-- Center vein -->
+    <path
+        android:fillColor="#2E7D32"
+        android:pathData="M63,28 C50,40 42,54 40,72 L44,73 C46,56 54,43 66,32 Z" />
+    <!-- Side veins -->
+    <path
+        android:fillColor="#2E7D32"
+        android:pathData="M50,50 L60,44 L61,47 L51,53 Z" />
+    <path
+        android:fillColor="#2E7D32"
+        android:pathData="M45,62 L57,57 L58,60 L46,65 Z" />
+</vector>

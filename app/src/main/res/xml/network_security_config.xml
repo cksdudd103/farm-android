@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Allows plain HTTP (cleartext) traffic to the local Flask backend, which is
+    typically served over http:// on a local network (e.g. 192.168.x.x:5000).
+    For production, replace with HTTPS and remove cleartextTrafficPermitted.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

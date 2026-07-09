@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Green nature theme palette -->
+    <color name="farm_green_10">#0A1F0F</color>
+    <color name="farm_green_20">#123A1E</color>
+    <color name="farm_green_30">#1B5E20</color>
+    <color name="farm_green_40">#2E7D32</color>
+    <color name="farm_green_50">#388E3C</color>
+    <color name="farm_green_60">#4CAF50</color>
+    <color name="farm_green_70">#66BB6A</color>
+    <color name="farm_green_80">#81C784</color>
+    <color name="farm_green_90">#C8E6C9</color>
+    <color name="farm_green_95">#E8F5E9</color>
+
+    <color name="farm_earth_40">#795548</color>
+    <color name="farm_earth_80">#D7CCC8</color>
+
+    <color name="farm_amber_50">#FFA000</color>
+    <color name="farm_amber_80">#FFE082</color>
+
+    <color name="farm_red_50">#D32F2F</color>
+    <color name="farm_red_80">#EF9A9A</color>
+
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+</resources>

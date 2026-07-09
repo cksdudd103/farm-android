@@ -1,0 +1,22 @@
+*.iml
+.gradle
+.kotlin/
+/local.properties
+/.idea/
+.DS_Store
+/build
+build/
+*.apk
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+/app/build
+/app/release
+
+# Gradle wrapper distribution cache (jar is kept, but downloaded dists are not)
+gradle/wrapper/dists/
+
+# Keystore files
+*.jks
+*.keystore

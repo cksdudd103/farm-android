@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">스마트영농</string>
+
+    <!-- Backend base URL. This value is only a fallback reference; the
+         actual URL used by the app is BuildConfig.BASE_URL defined in
+         app/build.gradle.kts (empty by default), and can also be set at
+         runtime from the 설정 (Settings) screen, which is persisted via
+         DataStore. -->
+    <string name="default_base_url" translatable="false"></string>
+</resources>

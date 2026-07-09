@@ -14,6 +14,10 @@ app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 
 app.use('/api', (req, res) => {
+  if (req.url === '/health' || req.url === '/health/') {
+    return res.json({ ok: true, backend: BACKEND_URL, timestamp: new Date().toISOString() })
+  }
+
   const targetUrl = new URL(req.url, BACKEND_URL)
   const options = {
     method: req.method,

@@ -117,11 +117,14 @@ function RegisterModal({ onClose }: { onClose: () => void }) {
   const [passwordConfirm, setPasswordConfirm] = useState('')
   const [error, setError] = useState('')
 
+  const [adminCode, setAdminCode] = useState('')
+  const [showAdminCode, setShowAdminCode] = useState(false)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     try {
-      await register(name, email, password, passwordConfirm)
+      await register(name, email, password, passwordConfirm, adminCode.trim() || undefined)
       navigate('/')
     } catch (err: any) {
       setError(err.response?.data?.error || '회원가입에 실패했습니다.')
@@ -165,6 +168,28 @@ function RegisterModal({ onClose }: { onClose: () => void }) {
             className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none"
             required
           />
+
+          <div className="border-t border-gray-200 pt-4">
+            <label className="flex items-center gap-2 text-sm text-gray-700 mb-2">
+              <input
+                type="checkbox"
+                checked={showAdminCode}
+                onChange={(e) => setShowAdminCode(e.target.checked)}
+                className="w-4 h-4 text-green-600 rounded focus:ring-green-500"
+              />
+              관리자 코드 입력
+            </label>
+            {showAdminCode && (
+              <input
+                type="text"
+                placeholder="관리자 코드"
+                value={adminCode}
+                onChange={(e) => setAdminCode(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none"
+              />
+            )}
+          </div>
+
           {error && <p className="text-red-600 text-sm">{error}</p>}
           <div className="flex gap-3 pt-2">
             <button

@@ -127,7 +127,13 @@ function RegisterModal({ onClose }: { onClose: () => void }) {
       await register(name, email, password, passwordConfirm, adminCode.trim() || undefined)
       navigate('/')
     } catch (err: any) {
-      setError(err.response?.data?.error || '회원가입에 실패했습니다.')
+      const message =
+        err?.response?.data?.error ||
+        err?.response?.data?.message ||
+        err?.message ||
+        '회원가입에 실패했습니다.'
+      console.error('Register error:', err?.response?.data ?? err)
+      setError(message)
     }
   }
 

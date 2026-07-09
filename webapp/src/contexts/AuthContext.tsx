@@ -35,9 +35,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const register = async (name: string, email: string, password: string, passwordConfirm: string, adminCode?: string) => {
-    await api.post('/api/register', { name, email, password, password_confirm: passwordConfirm, admin_code: adminCode })
-    const me = await api.get('/api/me')
-    setUser(me.data)
+    const res = await api.post('/api/register', { name, email, password, password_confirm: passwordConfirm, admin_code: adminCode })
+    if (res.data?.user) {
+      setUser(res.data.user)
+    } else {
+      const me = await api.get('/api/me')
+      setUser(me.data)
+    }
   }
 
   const logout = async () => {

@@ -26,7 +26,7 @@ function isStandalone() {
 function InstallAppButton() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [installed, setInstalled] = useState(isStandalone() || isNativeApp())
-  const [showIosHint, setShowIosHint] = useState(false)
+  const [showHint, setShowHint] = useState(false)
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -34,13 +34,17 @@ function InstallAppButton() {
       setDeferredPrompt(e as BeforeInstallPromptEvent)
     }
     window.addEventListener('beforeinstallprompt', handler)
-    window.addEventListener('appinstalled', () => setInstalled(true))
+    window.addEventListener('appinstalled', () => {
+      setInstalled(true)
+      setDeferredPrompt(null)
+    })
     return () => window.removeEventListener('beforeinstallprompt', handler)
   }, [])
 
   if (installed) return null
 
   const handleClick = async () => {
+    setShowHint(false)
     if (deferredPrompt) {
       await deferredPrompt.prompt()
       const { outcome } = await deferredPrompt.userChoice
@@ -48,33 +52,29 @@ function InstallAppButton() {
       setDeferredPrompt(null)
       return
     }
-    if (isIos()) {
-      setShowIosHint(true)
-      return
-    }
-    setShowIosHint(true)
+    setShowHint(true)
   }
 
   return (
     <div className="absolute top-4 left-4">
       <button
         onClick={handleClick}
-        className="flex items-center gap-1.5 px-3 py-2 bg-white/90 hover:bg-white shadow-md rounded-xl text-sm font-medium text-green-800 border border-green-200 transition"
+        className="flex items-center gap-1.5 px-4 py-2.5 bg-green-700 hover:bg-green-800 shadow-lg rounded-full text-sm font-bold text-white transition"
       >
         <Download className="w-4 h-4" />
-        앱 설치
+        홈 화면에 추가
       </button>
-      {showIosHint && (
-        <div className="mt-2 w-64 p-3 bg-white rounded-xl shadow-lg border border-gray-200 text-xs text-gray-700 space-y-1">
+      {showHint && (
+        <div className="mt-2 w-72 p-3 bg-white rounded-xl shadow-xl border border-gray-200 text-xs text-gray-700 space-y-1">
           <div className="flex items-center gap-1.5 font-semibold text-gray-900">
             <Smartphone className="w-4 h-4" /> 홈 화면에 추가하기
           </div>
           {isIos() ? (
             <p>Safari 하단 공유 버튼(⬆️)을 누른 뒤 "홈 화면에 추가"를 선택하세요.</p>
           ) : (
-            <p>브라우저 메뉴(⋮)에서 "홈 화면에 추가" 또는 "앱 설치"를 선택하세요.</p>
+            <p>Chrome 메뉴(⋮) → "홈 화면에 추가" 또는 "앱 설치"를 선택하세요.</p>
           )}
-          <button onClick={() => setShowIosHint(false)} className="text-green-700 font-medium hover:underline">
+          <button onClick={() => setShowHint(false)} className="text-green-700 font-medium hover:underline">
             닫기
           </button>
         </div>

@@ -245,6 +245,16 @@ export interface PromoCode {
   discount_amount?: number
 }
 
+export interface PaymentPrepareResponse {
+  free: boolean
+  subscription?: Subscription
+  order_id?: string
+  order_name?: string
+  amount?: number
+  customer_name?: string
+  customer_email?: string
+}
+
 export interface PostListResponse {
   ok: boolean
   data: Post[]

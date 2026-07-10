@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Check, Crown, Loader2 } from 'lucide-react'
-import { fetchPlans, fetchMySubscription, upgradePlan, validatePromoCode } from '../lib/api'
+import { fetchPlans, fetchMySubscription, validatePromoCode } from '../lib/api'
 import { PageCard } from '../components/Layout'
-import { useAuth } from '../contexts/AuthContext'
 import type { Plan, Subscription } from '../types/api'
 
 export function PlansPage() {
-  const { refreshUser } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation() as { state?: { justApplied?: boolean } }
   const [plans, setPlans] = useState<Plan[]>([])
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [loading, setLoading] = useState(true)
@@ -15,8 +16,7 @@ export function PlansPage() {
   const [promoCode, setPromoCode] = useState('')
   const [promoMsg, setPromoMsg] = useState('')
   const [discountPct, setDiscountPct] = useState(0)
-  const [processingPlanId, setProcessingPlanId] = useState<number | null>(null)
-  const [successMsg, setSuccessMsg] = useState('')
+  const [successMsg, setSuccessMsg] = useState(location.state?.justApplied ? '요금제가 적용되었습니다.' : '')
 
   const load = () => {
     setLoading(true)
@@ -46,25 +46,14 @@ export function PlansPage() {
     }
   }
 
-  const handleSelect = async (plan: Plan) => {
+  const handleSelect = (plan: Plan) => {
     setError('')
     setSuccessMsg('')
-    setProcessingPlanId(plan.id)
-    try {
-      const sub = await upgradePlan({
-        plan_id: plan.id,
-        billing_cycle: billingCycle,
-        promo_code: promoCode.trim() || undefined,
-      })
-      setSubscription(sub)
-      setSuccessMsg(`'${plan.name}' 요금제가 적용되었습니다.`)
-      await refreshUser()
-    } catch (err: any) {
-      setError(err?.response?.data?.msg || err.message || '요금제 적용에 실패했습니다.')
-    } finally {
-      setProcessingPlanId(null)
-    }
+    navigate('/checkout', {
+      state: { planId: plan.id, billingCycle, promoCode: promoCode.trim() || undefined },
+    })
   }
+
 
   if (loading) {
     return (
@@ -160,7 +149,7 @@ export function PlansPage() {
                   ))}
                 </ul>
                 <button
-                  disabled={isCurrent || processingPlanId === plan.id}
+                  disabled={isCurrent}
                   onClick={() => handleSelect(plan)}
                   className={`w-full py-2 rounded-lg text-sm font-medium transition ${
                     isCurrent
@@ -168,7 +157,7 @@ export function PlansPage() {
                       : 'bg-green-600 hover:bg-green-700 text-white disabled:opacity-60'
                   }`}
                 >
-                  {processingPlanId === plan.id ? '적용 중...' : isCurrent ? '현재 요금제' : '이 요금제 적용'}
+                  {isCurrent ? '현재 요금제' : '이 요금제 적용'}
                 </button>
               </div>
             )

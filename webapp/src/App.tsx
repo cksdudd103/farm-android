@@ -18,6 +18,9 @@ import { LinksPage } from './pages/LinksPage'
 import { ShipmentPage } from './pages/ShipmentPage'
 import { CommunityPage } from './pages/CommunityPage'
 import { PlansPage } from './pages/PlansPage'
+import { CheckoutPage } from './pages/CheckoutPage'
+import { PaymentSuccessPage } from './pages/PaymentSuccessPage'
+import { PaymentFailPage } from './pages/PaymentFailPage'
 
 import { AdminUsersPage } from './pages/AdminUsersPage'
 
@@ -42,6 +45,9 @@ function App() {
           <Route path="links" element={<LinksPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="plans" element={<PlansPage />} />
+          <Route path="checkout" element={<CheckoutPage />} />
+          <Route path="payments/success" element={<PaymentSuccessPage />} />
+          <Route path="payments/fail" element={<PaymentFailPage />} />
           <Route path="admin/users" element={<AdminUsersPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>

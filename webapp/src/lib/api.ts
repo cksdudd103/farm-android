@@ -14,6 +14,7 @@ import type {
   Plan,
   Subscription,
   PromoCode,
+  PaymentPrepareResponse,
   RdaNotice,
   Shipment,
   SupportProgram,
@@ -177,6 +178,10 @@ export const upgradePlan = (payload: { plan_id: number; billing_cycle: 'monthly'
   api.post<ApiResponse<Subscription>>('/api/subscriptions/upgrade', payload).then(unwrap)
 export const validatePromoCode = (code: string) =>
   api.post<ApiResponse<PromoCode>>('/api/promo-codes/validate', { code }).then(unwrap)
+export const preparePayment = (payload: { plan_id: number; billing_cycle: 'monthly' | 'annual'; promo_code?: string }) =>
+  api.post<ApiResponse<PaymentPrepareResponse>>('/api/payments/prepare', payload).then(unwrap)
+export const confirmTossPayment = (payload: { paymentKey: string; orderId: string; amount: number }) =>
+  api.post<ApiResponse<Subscription>>('/api/payments/toss/confirm', payload).then(unwrap)
 
 export interface ExternalLink {
   name: string

@@ -19,9 +19,11 @@ import type {
   WeatherResponse,
 } from '../types/api'
 
-const BACKEND_URL = 'https://farm-webapp-rezy.onrender.com'
-
-const baseURL = import.meta.env.VITE_API_BASE_URL || BACKEND_URL
+// Same-origin relative path by default so requests go through server.cjs's
+// /api proxy (which forwards to the real Flask backend via BACKEND_URL env var).
+// Only override with VITE_API_BASE_URL if you need to hit a backend directly
+// (e.g. local dev without the proxy).
+const baseURL = import.meta.env.VITE_API_BASE_URL || ''
 
 export const api = axios.create({
   baseURL,

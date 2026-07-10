@@ -11,6 +11,9 @@ import type {
   PesticideInfo,
   Post,
   PostListResponse,
+  Plan,
+  Subscription,
+  PromoCode,
   RdaNotice,
   Shipment,
   SupportProgram,
@@ -166,6 +169,14 @@ export const updatePost = (id: number, payload: FormData | Partial<Post>) =>
     })
     .then(unwrap)
 export const deletePost = (id: number) => api.delete<ApiResponse<unknown>>(`/api/posts/${id}`).then(unwrap)
+
+// Plans / Subscriptions (요금제)
+export const fetchPlans = () => api.get<ApiResponse<Plan[]>>('/api/plans').then(unwrap)
+export const fetchMySubscription = () => api.get<ApiResponse<Subscription>>('/api/subscriptions/me').then(unwrap)
+export const upgradePlan = (payload: { plan_id: number; billing_cycle: 'monthly' | 'annual'; promo_code?: string }) =>
+  api.post<ApiResponse<Subscription>>('/api/subscriptions/upgrade', payload).then(unwrap)
+export const validatePromoCode = (code: string) =>
+  api.post<ApiResponse<PromoCode>>('/api/promo-codes/validate', { code }).then(unwrap)
 
 export interface ExternalLink {
   name: string

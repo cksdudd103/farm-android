@@ -216,6 +216,35 @@ export interface Post {
   created_date?: string
 }
 
+export interface Plan {
+  id: number
+  code: string
+  name: string
+  price_monthly: number
+  price_annual: number
+  features: string[]
+  is_active: boolean
+  display_order: number
+  created_at?: string
+}
+
+export interface Subscription {
+  plan_id: number | null
+  plan_code: string | null
+  plan_name: string | null
+  status: string
+  expiry_date?: string | null
+  billing_cycle: string
+  is_waived: boolean
+}
+
+export interface PromoCode {
+  id: number
+  code: string
+  discount_percent?: number
+  discount_amount?: number
+}
+
 export interface PostListResponse {
   ok: boolean
   data: Post[]

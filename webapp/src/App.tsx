@@ -17,6 +17,7 @@ import { SettingsPage } from './pages/SettingsPage'
 import { LinksPage } from './pages/LinksPage'
 import { ShipmentPage } from './pages/ShipmentPage'
 import { CommunityPage } from './pages/CommunityPage'
+import { PlansPage } from './pages/PlansPage'
 
 import { AdminUsersPage } from './pages/AdminUsersPage'
 
@@ -40,6 +41,7 @@ function App() {
           <Route path="support" element={<SupportPage />} />
           <Route path="links" element={<LinksPage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="plans" element={<PlansPage />} />
           <Route path="admin/users" element={<AdminUsersPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>

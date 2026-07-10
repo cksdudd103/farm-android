@@ -104,6 +104,7 @@ export interface MarketItem {
   price: number
   change_pct: number
   trend: 'up' | 'down' | 'flat'
+  source?: 'kamis' | 'mock'
 }
 
 export interface MarketResponse {

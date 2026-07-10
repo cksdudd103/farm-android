@@ -119,7 +119,8 @@ export const createDiagnosis = (payload: FormData) =>
 export const deleteDiagnosis = (id: number) => api.delete<ApiResponse<unknown>>(`/api/diagnoses/${id}`).then(unwrap)
 
 // Market / Weather / Pesticide / Support
-export const fetchMarketPrices = () => api.get<MarketResponse>('/api/market').then((res) => res.data.data)
+export const fetchMarketPrices = (date?: string) =>
+  api.get<MarketResponse>('/api/market', { params: date ? { date } : {} }).then((res) => res.data)
 export const fetchWeather = (region = '전국') => api.get<WeatherResponse>('/api/weather', { params: { region } }).then((res) => res.data)
 export const fetchPesticides = (q = '') => api.get<ApiResponse<PesticideInfo[]>>('/api/pesticides', { params: { q } }).then(unwrap)
 export const fetchSupportPrograms = () => api.get<ApiResponse<SupportProgram[]>>('/api/support-programs').then(unwrap)

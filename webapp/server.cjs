@@ -119,13 +119,50 @@ app.get('/api/announcements', (req, res) => {
   res.json({ ok: true, data })
 })
 
+async function proxyRequest(req, body, attempt) {
+  const targetUrl = BACKEND_URL + req.url
+  if (attempt > 1) {
+    console.log('[PROXY RETRY]', req.method, req.url, 'attempt', attempt)
+  }
+
+  const headers = {}
+  Object.entries(req.headers).forEach(([key, value]) => {
+    if (key !== 'host' && key !== 'content-length') {
+      headers[key] = value
+    }
+  })
+  headers.host = new URL(BACKEND_URL).hostname
+  if (body.length > 0) {
+    headers['content-length'] = String(body.length)
+  }
+
+  const response = await fetch(targetUrl, {
+    method: req.method,
+    headers,
+    body: body.length > 0 ? body : undefined,
+    redirect: 'manual',
+    credentials: 'include',
+  })
+
+  if (attempt < 3 && (response.status === 502 || response.status === 503 || response.status === 500)) {
+    const text = await response.text().catch(() => '')
+    const isWakeUp = /Service waking up|almost live|Application loading/i.test(text)
+    if (isWakeUp) {
+      console.log('[PROXY WAKEUP]', req.method, req.url, 'status', response.status, 'retrying...')
+      await new Promise((resolve) => setTimeout(resolve, 2500 * attempt))
+      return proxyRequest(req, body, attempt + 1)
+    }
+  }
+
+  return response
+}
+
 app.use('/api', async (req, res) => {
   if (req.url === '/health' || req.url === '/health/') {
     return res.json({ ok: true, backend: BACKEND_URL, timestamp: new Date().toISOString() })
   }
 
-  const targetUrl = BACKEND_URL + req.url
-  console.log('[PROXY]', req.method, req.url, '->', targetUrl)
+  console.log('[PROXY]', req.method, req.url, '->', BACKEND_URL + req.url)
 
   try {
     const chunks = []
@@ -134,24 +171,7 @@ app.use('/api', async (req, res) => {
     }
     const body = Buffer.concat(chunks)
 
-    const headers = {}
-    Object.entries(req.headers).forEach(([key, value]) => {
-      if (key !== 'host' && key !== 'content-length') {
-        headers[key] = value
-      }
-    })
-    headers.host = new URL(BACKEND_URL).hostname
-    if (body.length > 0) {
-      headers['content-length'] = String(body.length)
-    }
-
-    const response = await fetch(targetUrl, {
-      method: req.method,
-      headers,
-      body: body.length > 0 ? body : undefined,
-      redirect: 'manual',
-      credentials: 'include',
-    })
+    const response = await proxyRequest(req, body, 1)
 
     res.status(response.status)
     response.headers.forEach((value, key) => {

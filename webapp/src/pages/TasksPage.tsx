@@ -7,12 +7,14 @@ import {
   fetchCrops,
 } from '../lib/api'
 import { PageCard } from '../components/Layout'
+import { useAuth } from '../contexts/AuthContext'
 import type { Task, Crop } from '../types/api'
 
 const priorities = ['높음', '보통', '낮음']
 const statuses = ['예정', '진행중', '완료']
 
 export function TasksPage() {
+  const { user } = useAuth()
   const [tasks, setTasks] = useState<Task[]>([])
   const [crops, setCrops] = useState<Crop[]>([])
   const [loading, setLoading] = useState(true)
@@ -64,6 +66,7 @@ export function TasksPage() {
       status: fd.get('status') as string,
       crop_id: cropId,
       crop_name: cropName,
+      is_public: fd.get('is_public') === 'on',
     }
     try {
       if (editing) {
@@ -108,25 +111,34 @@ export function TasksPage() {
         <p className="text-gray-500">등록된 작업이 없습니다.</p>
       ) : (
         <ul className="divide-y divide-gray-200">
-          {tasks.map((t) => (
+          {tasks.map((t) => {
+            const isOwner = user?.id === undefined || t.user_id === user?.id
+            return (
             <li key={t.id} className="py-4 flex justify-between items-start">
               <div>
                 <div className="flex items-center gap-2">
                   <p className="font-semibold text-gray-900">{t.title}</p>
                   <span className={`text-xs px-1.5 py-0.5 rounded ${priorityClass(t.priority)}`}>{t.priority}</span>
                   <span className={`text-xs px-1.5 py-0.5 rounded ${statusClass(t.status)}`}>{t.status}</span>
+                  <span className={`text-[11px] px-1.5 py-0.5 rounded-full ${t.is_public ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>
+                    {t.is_public ? '공개' : '비공개'}
+                  </span>
+                  {!isOwner && t.owner_name && <span className="text-[11px] text-gray-400">by {t.owner_name}</span>}
                 </div>
                 <p className="text-sm text-gray-500">
                   {t.crop_name || '-'} · {t.due_date || '마감일 없음'}
                 </p>
                 {t.memo && <p className="text-sm text-gray-600 mt-1">{t.memo}</p>}
               </div>
-              <div className="flex gap-2">
-                <button onClick={() => { setEditing(t); setIsOpen(true) }} className="text-sm text-green-700 hover:underline">수정</button>
-                <button onClick={() => handleDelete(t.id)} className="text-sm text-red-600 hover:underline">삭제</button>
-              </div>
+              {isOwner && (
+                <div className="flex gap-2">
+                  <button onClick={() => { setEditing(t); setIsOpen(true) }} className="text-sm text-green-700 hover:underline">수정</button>
+                  <button onClick={() => handleDelete(t.id)} className="text-sm text-red-600 hover:underline">삭제</button>
+                </div>
+              )}
             </li>
-          ))}
+            )
+          })}
         </ul>
       )}
 
@@ -174,6 +186,10 @@ function TaskModal({
             {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
           <textarea name="memo" defaultValue={task?.memo || ''} placeholder="메모" className="w-full px-3 py-2 border rounded-lg" rows={3} />
+          <label className="flex items-center gap-2 text-sm text-gray-700 select-none">
+            <input type="checkbox" name="is_public" defaultChecked={task?.is_public || false} className="rounded" />
+            다른 회원에게 공개하기 (공개 시 다른 회원도 조회 가능)
+          </label>
 
           <div className="flex gap-2 pt-2">
             <button type="button" onClick={onClose} className="flex-1 py-2 border rounded-lg">취소</button>

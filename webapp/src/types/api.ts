@@ -44,6 +44,8 @@ export interface Crop {
   status: string
   memo?: string
   image?: string
+  is_public?: boolean
+  owner_name?: string
   created_at?: string
 }
 
@@ -57,6 +59,8 @@ export interface Journal {
   weather?: string
   content?: string
   image?: string
+  is_public?: boolean
+  owner_name?: string
   created_at?: string
 }
 
@@ -70,6 +74,8 @@ export interface Task {
   due_date?: string
   priority: string
   status: string
+  is_public?: boolean
+  owner_name?: string
   created_at?: string
 }
 

@@ -7,11 +7,13 @@ import {
 } from '../lib/api'
 import { PageCard } from '../components/Layout'
 import { cropGuides, getCropGuide, calculateHarvestDate, getDaysUntil } from '../data/cropGuides'
+import { useAuth } from '../contexts/AuthContext'
 import type { Crop } from '../types/api'
 
 const statuses = ['재배중', '수확완료', '휴경']
 
 export function CropsPage() {
+  const { user } = useAuth()
   const [crops, setCrops] = useState<Crop[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -51,6 +53,7 @@ export function CropsPage() {
       planting_date: plantingDate || undefined,
       status: (fd.get('status') as string) || '재배중',
       memo: (fd.get('memo') as string) || undefined,
+      is_public: fd.get('is_public') === 'on',
     }
 
     if (matchedGuide && plantingDate) {
@@ -124,7 +127,7 @@ export function CropsPage() {
       ) : (
         <ul className="divide-y divide-gray-200">
           {crops.map((crop) => (
-            <CropItem key={crop.id} crop={crop} onEdit={openEdit} onDelete={handleDelete} />
+            <CropItem key={crop.id} crop={crop} currentUserId={user?.id} onEdit={openEdit} onDelete={handleDelete} />
           ))}
         </ul>
       )}
@@ -142,13 +145,16 @@ export function CropsPage() {
 
 function CropItem({
   crop,
+  currentUserId,
   onEdit,
   onDelete,
 }: {
   crop: Crop
+  currentUserId?: number
   onEdit: (crop: Crop) => void
   onDelete: (id: number) => void
 }) {
+  const isOwner = currentUserId === undefined || crop.user_id === currentUserId
   const g = useMemo(() => getCropGuide(crop.name), [crop.name])
   const estimate = useMemo(() => {
     if (crop.expected_harvest_date) {
@@ -168,7 +174,15 @@ function CropItem({
           <img src={crop.image} alt={crop.name} className="w-16 h-16 object-cover rounded-lg" />
         )}
         <div>
-          <p className="font-semibold text-gray-900">{crop.name}</p>
+          <p className="font-semibold text-gray-900 flex items-center gap-1.5">
+            {crop.name}
+            <span className={`text-[11px] px-1.5 py-0.5 rounded-full font-normal ${crop.is_public ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>
+              {crop.is_public ? '공개' : '비공개'}
+            </span>
+            {!isOwner && crop.owner_name && (
+              <span className="text-[11px] text-gray-400 font-normal">by {crop.owner_name}</span>
+            )}
+          </p>
           <p className="text-sm text-gray-500">
             {crop.variety || '-'} · {crop.field_location || '-'} · {crop.area ? `${crop.area}㎡` : '-'}
           </p>
@@ -183,10 +197,12 @@ function CropItem({
           {crop.memo && <p className="text-sm text-gray-600 mt-1">{crop.memo}</p>}
         </div>
       </div>
-      <div className="flex gap-2">
-        <button onClick={() => onEdit(crop)} className="text-sm text-green-700 hover:underline">수정</button>
-        <button onClick={() => onDelete(crop.id)} className="text-sm text-red-600 hover:underline">삭제</button>
-      </div>
+      {isOwner && (
+        <div className="flex gap-2">
+          <button onClick={() => onEdit(crop)} className="text-sm text-green-700 hover:underline">수정</button>
+          <button onClick={() => onDelete(crop.id)} className="text-sm text-red-600 hover:underline">삭제</button>
+        </div>
+      )}
     </li>
   )
 }
@@ -238,6 +254,10 @@ function CropModal({
             {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
           <textarea name="memo" defaultValue={crop?.memo || ''} placeholder="메모" className="w-full px-3 py-2 border rounded-lg" rows={3} />
+          <label className="flex items-center gap-2 text-sm text-gray-700 select-none">
+            <input type="checkbox" name="is_public" defaultChecked={crop?.is_public || false} className="rounded" />
+            다른 회원에게 공개하기 (공개 시 다른 회원도 조회 가능)
+          </label>
 
           <div className="flex gap-2 pt-2">
             <button type="button" onClick={onClose} className="flex-1 py-2 border rounded-lg">취소</button>

@@ -7,11 +7,13 @@ import {
   fetchCrops,
 } from '../lib/api'
 import { PageCard } from '../components/Layout'
+import { useAuth } from '../contexts/AuthContext'
 import type { Journal, Crop } from '../types/api'
 
 const workTypes = ['파종', '정식', '비료', '관수', '방제', '수확', '기타']
 
 export function JournalPage() {
+  const { user } = useAuth()
   const [journals, setJournals] = useState<Journal[]>([])
   const [crops, setCrops] = useState<Crop[]>([])
   const [loading, setLoading] = useState(true)
@@ -62,6 +64,7 @@ export function JournalPage() {
       work_type: (fd.get('work_type') as string) || undefined,
       weather: (fd.get('weather') as string) || undefined,
       content: (fd.get('content') as string) || '',
+      is_public: fd.get('is_public') === 'on',
     }
 
     try {
@@ -107,24 +110,35 @@ export function JournalPage() {
         <p className="text-gray-500">등록된 영농 일지가 없습니다.</p>
       ) : (
         <ul className="divide-y divide-gray-200">
-          {journals.map((j) => (
+          {journals.map((j) => {
+            const isOwner = user?.id === undefined || j.user_id === user?.id
+            return (
             <li key={j.id} className="py-4 flex justify-between items-start">
               <div className="flex gap-4">
                 {j.image && <img src={j.image} alt="" className="w-16 h-16 object-cover rounded-lg" />}
                 <div>
-                  <p className="font-semibold text-gray-900">{j.date}</p>
+                  <p className="font-semibold text-gray-900 flex items-center gap-1.5">
+                    {j.date}
+                    <span className={`text-[11px] px-1.5 py-0.5 rounded-full font-normal ${j.is_public ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>
+                      {j.is_public ? '공개' : '비공개'}
+                    </span>
+                    {!isOwner && j.owner_name && <span className="text-[11px] text-gray-400 font-normal">by {j.owner_name}</span>}
+                  </p>
                   <p className="text-sm text-gray-500">
                     {j.crop_name || '-'} · {j.work_type || '-'} · {j.weather || '-'}
                   </p>
                   <p className="text-gray-700 mt-1">{j.content}</p>
                 </div>
               </div>
-              <div className="flex gap-2">
-                <button onClick={() => { setEditing(j); setIsOpen(true) }} className="text-sm text-green-700 hover:underline">수정</button>
-                <button onClick={() => handleDelete(j.id)} className="text-sm text-red-600 hover:underline">삭제</button>
-              </div>
+              {isOwner && (
+                <div className="flex gap-2">
+                  <button onClick={() => { setEditing(j); setIsOpen(true) }} className="text-sm text-green-700 hover:underline">수정</button>
+                  <button onClick={() => handleDelete(j.id)} className="text-sm text-red-600 hover:underline">삭제</button>
+                </div>
+              )}
             </li>
-          ))}
+            )
+          })}
         </ul>
       )}
 
@@ -170,6 +184,10 @@ function JournalModal({
           </select>
           <input name="weather" defaultValue={journal?.weather || ''} placeholder="날씨" className="w-full px-3 py-2 border rounded-lg" />
           <textarea name="content" defaultValue={journal?.content || ''} placeholder="내용" className="w-full px-3 py-2 border rounded-lg" rows={4} required />
+          <label className="flex items-center gap-2 text-sm text-gray-700 select-none">
+            <input type="checkbox" name="is_public" defaultChecked={journal?.is_public || false} className="rounded" />
+            다른 회원에게 공개하기 (공개 시 다른 회원도 조회 가능)
+          </label>
 
           <div className="flex gap-2 pt-2">
             <button type="button" onClick={onClose} className="flex-1 py-2 border rounded-lg">취소</button>

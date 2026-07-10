@@ -12,6 +12,10 @@ function isIos() {
   return /iphone|ipad|ipod/i.test(window.navigator.userAgent)
 }
 
+function isNativeApp() {
+  return /SmartFarmAndroidApp/i.test(window.navigator.userAgent)
+}
+
 function isStandalone() {
   return (
     window.matchMedia('(display-mode: standalone)').matches ||
@@ -21,7 +25,7 @@ function isStandalone() {
 
 function InstallAppButton() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
-  const [installed, setInstalled] = useState(isStandalone())
+  const [installed, setInstalled] = useState(isStandalone() || isNativeApp())
   const [showIosHint, setShowIosHint] = useState(false)
 
   useEffect(() => {

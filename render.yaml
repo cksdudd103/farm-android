@@ -4,11 +4,13 @@ services:
     runtime: node
     plan: free
     branch: new-main
-    buildCommand: cd webapp && npm install && npm run build
+    buildCommand: cd webapp && npm ci && npm run build
     startCommand: cd webapp && node server.cjs
     envVars:
       - key: BACKEND_URL
-        value: https://farm-webapp-rezy.onrender.com/api
+        value: https://farm-webapp-1.onrender.com/api
       - key: NODE_VERSION
         value: "20"
+      - key: NPM_CONFIG_LEGACY_PEER_DEPS
+        value: "true"
     rootDir: .

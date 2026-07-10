@@ -1,7 +1,83 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { Sprout, Eye, EyeOff } from 'lucide-react'
+import { Sprout, Eye, EyeOff, Download, Smartphone } from 'lucide-react'
+
+type BeforeInstallPromptEvent = Event & {
+  prompt: () => Promise<void>
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
+}
+
+function isIos() {
+  return /iphone|ipad|ipod/i.test(window.navigator.userAgent)
+}
+
+function isStandalone() {
+  return (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (window.navigator as any).standalone === true
+  )
+}
+
+function InstallAppButton() {
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
+  const [installed, setInstalled] = useState(isStandalone())
+  const [showIosHint, setShowIosHint] = useState(false)
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault()
+      setDeferredPrompt(e as BeforeInstallPromptEvent)
+    }
+    window.addEventListener('beforeinstallprompt', handler)
+    window.addEventListener('appinstalled', () => setInstalled(true))
+    return () => window.removeEventListener('beforeinstallprompt', handler)
+  }, [])
+
+  if (installed) return null
+
+  const handleClick = async () => {
+    if (deferredPrompt) {
+      await deferredPrompt.prompt()
+      const { outcome } = await deferredPrompt.userChoice
+      if (outcome === 'accepted') setInstalled(true)
+      setDeferredPrompt(null)
+      return
+    }
+    if (isIos()) {
+      setShowIosHint(true)
+      return
+    }
+    setShowIosHint(true)
+  }
+
+  return (
+    <div className="absolute top-4 left-4">
+      <button
+        onClick={handleClick}
+        className="flex items-center gap-1.5 px-3 py-2 bg-white/90 hover:bg-white shadow-md rounded-xl text-sm font-medium text-green-800 border border-green-200 transition"
+      >
+        <Download className="w-4 h-4" />
+        앱 설치
+      </button>
+      {showIosHint && (
+        <div className="mt-2 w-64 p-3 bg-white rounded-xl shadow-lg border border-gray-200 text-xs text-gray-700 space-y-1">
+          <div className="flex items-center gap-1.5 font-semibold text-gray-900">
+            <Smartphone className="w-4 h-4" /> 홈 화면에 추가하기
+          </div>
+          {isIos() ? (
+            <p>Safari 하단 공유 버튼(⬆️)을 누른 뒤 "홈 화면에 추가"를 선택하세요.</p>
+          ) : (
+            <p>브라우저 메뉴(⋮)에서 "홈 화면에 추가" 또는 "앱 설치"를 선택하세요.</p>
+          )}
+          <button onClick={() => setShowIosHint(false)} className="text-green-700 font-medium hover:underline">
+            닫기
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
 
 export function LoginPage() {
   const { user, login } = useAuth()
@@ -27,7 +103,8 @@ export function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="relative min-h-screen flex items-center justify-center p-4">
+      <InstallAppButton />
       <div className="bg-white rounded-3xl shadow-xl w-full max-w-md p-8">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">

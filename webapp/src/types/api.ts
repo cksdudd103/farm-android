@@ -175,3 +175,53 @@ export interface DashboardResponse {
   ok: boolean
   data?: DashboardSummary
 }
+
+export interface RdaNotice {
+  id: number
+  title: string
+  content?: string
+  category?: string
+  notice_date?: string
+  source_url?: string
+}
+
+export interface Shipment {
+  id: number
+  user_id: number
+  crop_id?: number | null
+  crop_name?: string
+  buyer?: string
+  quantity: number
+  unit?: string
+  unit_price: number
+  total_price?: number
+  shipment_date?: string
+  status: string
+  memo?: string
+  created_at?: string
+}
+
+export interface Post {
+  id: number
+  user_id: number
+  author_name?: string
+  category: string
+  title: string
+  content?: string
+  image?: string
+  views: number
+  is_pinned: boolean
+  has_attachment?: boolean
+  created_at?: string
+  created_date?: string
+}
+
+export interface PostListResponse {
+  ok: boolean
+  data: Post[]
+  pinned?: Post[]
+  page: number
+  per_page: number
+  total: number
+  total_pages: number
+}

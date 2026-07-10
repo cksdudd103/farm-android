@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { fetchExternalLinks, fetchAnnouncements } from '../lib/api'
+import { fetchExternalLinks, fetchAnnouncements, fetchRdaNotices } from '../lib/api'
 import type { ExternalLink, Announcement } from '../lib/api'
 import { PageCard } from '../components/Layout'
 import { ExternalLink as LinkIcon, Newspaper, Search } from 'lucide-react'
@@ -28,6 +28,7 @@ const fallbackAnnouncements: Announcement[] = [
 export function LinksPage() {
   const [links, setLinks] = useState<ExternalLink[]>([])
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
+  const [rdaLive, setRdaLive] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [category, setCategory] = useState('전체')
@@ -37,7 +38,18 @@ export function LinksPage() {
     setLoading(true)
     Promise.all([
       fetchExternalLinks().catch(() => fallbackLinks),
-      fetchAnnouncements().catch(() => fallbackAnnouncements),
+      fetchRdaNotices()
+        .then((notices) => {
+          setRdaLive(true)
+          return notices.map((n) => ({
+            title: n.title,
+            url: n.source_url || 'https://www.rda.go.kr',
+            source: '농촌진흥청',
+            date: n.notice_date,
+            summary: n.content,
+          }))
+        })
+        .catch(() => fetchAnnouncements().catch(() => fallbackAnnouncements)),
     ])
       .then(([l, a]) => {
         setLinks(l?.length > 0 ? l : fallbackLinks)
@@ -70,13 +82,16 @@ export function LinksPage() {
         <div className="flex items-center gap-2 mb-3">
           <Newspaper className="w-5 h-5 text-blue-700" />
           <p className="font-semibold text-blue-800">주요 공지/뉴스 바로가기</p>
+          <span className={`text-xs px-2 py-0.5 rounded-full ${rdaLive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+            {rdaLive ? '농촌진흥청 실시간' : '샘플 데이터'}
+          </span>
         </div>
         <ul className="space-y-2">
           {announcements.map((a, i) => (
             <li key={i} className="flex items-start gap-2">
               <LinkIcon className="w-4 h-4 text-blue-600 mt-0.5" />
               <a href={a.url} target="_blank" rel="noreferrer" className="text-sm text-blue-700 hover:underline">
-                [{a.source}] {a.title}
+                [{a.source}] {a.title}{a.date ? ` (${a.date})` : ''}
               </a>
             </li>
           ))}

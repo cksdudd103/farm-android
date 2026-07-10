@@ -9,6 +9,10 @@ import type {
   Journal,
   MarketResponse,
   PesticideInfo,
+  Post,
+  PostListResponse,
+  RdaNotice,
+  Shipment,
   SupportProgram,
   Task,
   User,
@@ -130,6 +134,36 @@ export const fetchExternalLinks = () =>
   api.get<ApiResponse<ExternalLink[]>>('/api/external-links').then((res) => res.data.data ?? [])
 export const fetchAnnouncements = (source?: string) =>
   api.get<ApiResponse<Announcement[]>>('/api/announcements', { params: source ? { source } : {} }).then((res) => res.data.data ?? [])
+
+// RDA notices (농촌진흥청 실제 공지 스크래핑 데이터)
+export const fetchRdaNotices = () => api.get<ApiResponse<RdaNotice[]>>('/api/rda').then(unwrap)
+export const refreshRdaNotices = () => api.post<ApiResponse<RdaNotice[]>>('/api/rda/refresh').then(unwrap)
+
+// Shipments (출하 관리)
+export const fetchShipments = () => api.get<ApiResponse<Shipment[]>>('/api/shipments').then(unwrap)
+export const createShipment = (payload: Partial<Shipment>) =>
+  api.post<ApiResponse<Shipment>>('/api/shipments', payload).then(unwrap)
+export const updateShipment = (id: number, payload: Partial<Shipment>) =>
+  api.put<ApiResponse<Shipment>>(`/api/shipments/${id}`, payload).then(unwrap)
+export const deleteShipment = (id: number) => api.delete<ApiResponse<unknown>>(`/api/shipments/${id}`).then(unwrap)
+
+// Community posts (커뮤니티 게시판)
+export const fetchPosts = (params: { category?: string; q?: string; page?: number; per_page?: number } = {}) =>
+  api.get<PostListResponse>('/api/posts', { params }).then((res) => res.data)
+export const fetchPostDetail = (id: number) => api.get<ApiResponse<Post>>(`/api/posts/${id}`).then(unwrap)
+export const createPost = (payload: FormData | Partial<Post>) =>
+  api
+    .post<ApiResponse<Post>>('/api/posts', payload, {
+      headers: payload instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : undefined,
+    })
+    .then(unwrap)
+export const updatePost = (id: number, payload: FormData | Partial<Post>) =>
+  api
+    .put<ApiResponse<Post>>(`/api/posts/${id}`, payload, {
+      headers: payload instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : undefined,
+    })
+    .then(unwrap)
+export const deletePost = (id: number) => api.delete<ApiResponse<unknown>>(`/api/posts/${id}`).then(unwrap)
 
 export interface ExternalLink {
   name: string

@@ -15,6 +15,8 @@ import { PesticidePage } from './pages/PesticidePage'
 import { SupportPage } from './pages/SupportPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { LinksPage } from './pages/LinksPage'
+import { ShipmentPage } from './pages/ShipmentPage'
+import { CommunityPage } from './pages/CommunityPage'
 
 import { AdminUsersPage } from './pages/AdminUsersPage'
 
@@ -31,6 +33,8 @@ function App() {
           <Route path="inventory" element={<InventoryPage />} />
           <Route path="diagnose" element={<DiagnosePage />} />
           <Route path="market" element={<MarketPage />} />
+          <Route path="shipments" element={<ShipmentPage />} />
+          <Route path="community" element={<CommunityPage />} />
           <Route path="weather" element={<WeatherPage />} />
           <Route path="pesticide" element={<PesticidePage />} />
           <Route path="support" element={<SupportPage />} />

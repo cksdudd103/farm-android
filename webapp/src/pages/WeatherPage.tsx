@@ -33,7 +33,7 @@ export function WeatherPage() {
 
   useEffect(() => {
     load(region)
-  }, [])
+  }, [region])
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()

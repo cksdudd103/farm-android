@@ -96,9 +96,9 @@ export function Layout() {
         <aside
           className={`${
             menuOpen ? 'translate-x-0' : '-translate-x-full'
-          } fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-lg transform transition-transform duration-200 md:translate-x-0 md:static md:shadow-none md:border-r md:border-gray-200`}
+          } fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-lg transform transition-transform duration-200 md:translate-x-0 md:static md:shadow-none md:border-r md:border-gray-200 overflow-y-auto`}
         >
-          <nav className="p-4 space-y-1">
+          <nav className="p-4 space-y-1 min-h-screen">
             {navItems.map((item) => renderNavItem(item, location.pathname, () => setMenuOpen(false)))}
             {isAdmin && (
               <>

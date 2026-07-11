@@ -69,6 +69,7 @@ export function ShipmentPage() {
   }
 
   const handleDelete = async (id: number) => {
+    if (!id) return
     if (!confirm('삭제하시겠습니까?')) return
     try {
       await deleteShipment(id)

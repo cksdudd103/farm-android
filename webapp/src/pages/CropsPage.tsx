@@ -127,7 +127,7 @@ export function CropsPage() {
       ) : (
         <ul className="divide-y divide-gray-200">
           {crops.map((crop) => (
-            <CropItem key={crop.id} crop={crop} currentUserId={user?.id} onEdit={openEdit} onDelete={handleDelete} />
+            <CropItem key={crop.id} crop={crop} currentUserId={user?.id} isAdmin={user?.role === 'admin'} onEdit={openEdit} onDelete={handleDelete} />
           ))}
         </ul>
       )}
@@ -146,15 +146,17 @@ export function CropsPage() {
 function CropItem({
   crop,
   currentUserId,
+  isAdmin,
   onEdit,
   onDelete,
 }: {
   crop: Crop
   currentUserId?: number
+  isAdmin?: boolean
   onEdit: (crop: Crop) => void
   onDelete: (id: number) => void
 }) {
-  const isOwner = currentUserId === undefined || crop.user_id === currentUserId
+  const isOwner = currentUserId === undefined || crop.user_id === currentUserId || isAdmin
   const g = useMemo(() => getCropGuide(crop.name), [crop.name])
   const estimate = useMemo(() => {
     if (crop.expected_harvest_date) {

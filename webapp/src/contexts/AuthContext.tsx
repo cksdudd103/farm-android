@@ -18,11 +18,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (isLoading) {
+        console.warn('[Auth] fetchMe timeout, treating as logged out')
+        setUser(null)
+        setIsLoading(false)
+      }
+    }, 8000)
+
     apiClient
       .fetchMe()
       .then((u) => setUser(u || null))
       .catch(() => setUser(null))
-      .finally(() => setIsLoading(false))
+      .finally(() => {
+        clearTimeout(timeout)
+        setIsLoading(false)
+      })
   }, [])
 
   const login = async (email: string, password: string, rememberMe: boolean) => {

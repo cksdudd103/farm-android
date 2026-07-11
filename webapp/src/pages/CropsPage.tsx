@@ -156,7 +156,7 @@ function CropItem({
   onEdit: (crop: Crop) => void
   onDelete: (id: number) => void
 }) {
-  const isOwner = currentUserId === undefined || crop.user_id === currentUserId || isAdmin
+  const isOwner = Boolean(currentUserId) && (crop.user_id === currentUserId || isAdmin)
   const g = useMemo(() => getCropGuide(crop.name), [crop.name])
   const estimate = useMemo(() => {
     if (crop.expected_harvest_date) {

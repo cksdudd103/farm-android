@@ -145,9 +145,11 @@ async function proxyRequest(req, body, attempt) {
   })
 
   if (attempt < 3 && (response.status === 502 || response.status === 503 || response.status === 500)) {
-    const text = await response.text().catch(() => '')
+    const cloned = response.clone()
+    const text = await cloned.text().catch(() => '')
     const isWakeUp = /Service waking up|almost live|Application loading/i.test(text)
     if (isWakeUp) {
+      cloned.body?.resume?.()
       console.log('[PROXY WAKEUP]', req.method, req.url, 'status', response.status, 'retrying...')
       await new Promise((resolve) => setTimeout(resolve, 2500 * attempt))
       return proxyRequest(req, body, attempt + 1)

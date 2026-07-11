@@ -79,7 +79,7 @@ export function DiagnosePage() {
   }
 
   const handleDelete = async (id: number) => {
-    if (!confirm('삭제하시겠습니까?')) return
+    if (!id || !confirm('삭제하시겠습니까?')) return
     try {
       await deleteDiagnosis(id)
       load()
